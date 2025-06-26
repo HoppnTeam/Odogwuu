@@ -74,7 +74,7 @@ export default function OnboardingScreen() {
       });
     } else {
       // Navigate to main app
-      router.replace('/');
+      router.replace('/(tabs)');
     }
   };
 
@@ -90,7 +90,7 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = () => {
-    router.replace('/');
+    router.replace('/(tabs)');
   };
 
   const handleScroll = (event: any) => {

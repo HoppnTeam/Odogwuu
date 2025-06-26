@@ -34,7 +34,8 @@ export default function RegisterScreen() {
     // Simulate registration - in real app, use Supabase auth
     setTimeout(() => {
       setLoading(false);
-      router.replace('/(tabs)');
+      // Redirect to onboarding flow instead of main app
+      router.replace('/onboarding');
     }, 1000);
   };
 

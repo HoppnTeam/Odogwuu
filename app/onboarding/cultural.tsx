@@ -52,7 +52,7 @@ const learningAspects = [
 
 export default function CulturalOnboardingScreen() {
   const handleGetStarted = () => {
-    router.replace('/');
+    router.replace('/(tabs)');
   };
 
   const handleBack = () => {
