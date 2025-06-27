@@ -31,13 +31,13 @@ export default function RestaurantsScreen() {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Search color={Colors.text.secondary} size={20} style={styles.searchIcon} />
+          <Search color={Colors.light.text.secondary} size={20} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search restaurants or cuisine..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor={Colors.text.secondary}
+            placeholderTextColor={Colors.light.text.secondary}
           />
         </View>
 
@@ -65,7 +65,7 @@ export default function RestaurantsScreen() {
 
         {/* Map Placeholder */}
         <TouchableOpacity style={styles.mapPlaceholder} activeOpacity={0.8}>
-          <MapPin color={Colors.primary} size={24} />
+          <MapPin color={Colors.light.primary} size={24} />
           <Text style={styles.mapText}>View on Map</Text>
           <Text style={styles.mapSubtext}>See restaurant locations</Text>
         </TouchableOpacity>
@@ -89,7 +89,7 @@ export default function RestaurantsScreen() {
                 <View style={styles.restaurantHeader}>
                   <Text style={styles.restaurantName}>{restaurant.name}</Text>
                   <View style={styles.ratingContainer}>
-                    <Star color={Colors.accent} size={16} fill={Colors.accent} />
+                    <Star color={Colors.light.accent} size={16} fill={Colors.light.accent} />
                     <Text style={styles.rating}>{restaurant.rating}</Text>
                   </View>
                 </View>
@@ -101,7 +101,7 @@ export default function RestaurantsScreen() {
                 
                 <View style={styles.restaurantFooter}>
                   <View style={styles.pickupInfo}>
-                    <Clock color={Colors.text.secondary} size={14} />
+                    <Clock color={Colors.light.text.secondary} size={14} />
                     <Text style={styles.pickupTime}>Ready in {restaurant.pickup_time}</Text>
                   </View>
                   
@@ -129,7 +129,7 @@ export default function RestaurantsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -138,18 +138,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
@@ -163,97 +163,101 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   filterScroll: {
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   filterChip: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 20,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     marginRight: Spacing.sm,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   filterChipActive: {
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
+    shadowColor: Colors.light.primary,
     shadowOpacity: 0.3,
   },
   filterChipText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   filterChipTextActive: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
   },
   mapPlaceholder: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
     padding: Spacing.lg,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderStyle: 'dashed',
+    shadowColor: Colors.light.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   mapText: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.text.primary,
     marginTop: Spacing.sm,
   },
   mapSubtext: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
+    marginTop: Spacing.xs,
   },
   restaurantList: {
     paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   listTitle: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    fontSize: FontSize.lg,
+    fontFamily: 'Montserrat-SemiBold',
+    color: Colors.light.text.primary,
     marginBottom: Spacing.md,
   },
   restaurantCard: {
-    backgroundColor: Colors.background.primary,
-    borderRadius: 12,
+    backgroundColor: Colors.light.background.secondary,
+    borderRadius: 16,
     marginBottom: Spacing.md,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
+    overflow: 'hidden',
+    shadowColor: Colors.light.black,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
-    overflow: 'hidden',
+    elevation: 4,
   },
   restaurantImage: {
     width: '100%',
     height: 160,
   },
   restaurantContent: {
-    padding: Spacing.md,
+    padding: Spacing.lg,
   },
   restaurantHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   restaurantName: {
-    flex: 1,
     fontSize: FontSize.lg,
-    fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    fontFamily: 'Montserrat-Bold',
+    color: Colors.light.text.primary,
+    flex: 1,
     marginRight: Spacing.sm,
   },
   ratingContainer: {
@@ -261,23 +265,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rating: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginLeft: Spacing.xs,
   },
   cuisineType: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
     marginBottom: Spacing.sm,
   },
   restaurantDescription: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
-    lineHeight: 20,
+    color: Colors.light.text.secondary,
     marginBottom: Spacing.md,
+    lineHeight: 20,
   },
   restaurantFooter: {
     flexDirection: 'row',
@@ -287,33 +291,32 @@ const styles = StyleSheet.create({
   pickupInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   pickupTime: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     marginLeft: Spacing.xs,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
     borderRadius: 12,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
   statusOpen: {
-    backgroundColor: Colors.success + '20',
+    backgroundColor: Colors.light.success,
   },
   statusClosed: {
-    backgroundColor: Colors.error + '20',
+    backgroundColor: Colors.light.error,
   },
   statusText: {
-    fontSize: FontSize.xs,
-    fontFamily: 'Montserrat-SemiBold',
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-SemiBold',
   },
   statusTextOpen: {
-    color: Colors.success,
+    color: Colors.light.white,
   },
   statusTextClosed: {
-    color: Colors.error,
+    color: Colors.light.white,
   },
-});
+}); 

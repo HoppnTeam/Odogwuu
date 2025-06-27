@@ -41,7 +41,7 @@ export default function WelcomeOnboardingScreen() {
         <View style={styles.featuresContainer}>
           <View style={styles.feature}>
             <View style={styles.featureIcon}>
-              <Globe color={Colors.primary} size={24} />
+              <Globe color={Colors.light.primary} size={24} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Explore 12+ Countries</Text>
@@ -51,7 +51,7 @@ export default function WelcomeOnboardingScreen() {
 
           <View style={styles.feature}>
             <View style={styles.featureIcon}>
-              <BookOpen color={Colors.primary} size={24} />
+              <BookOpen color={Colors.light.primary} size={24} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Learn Cultural Stories</Text>
@@ -61,7 +61,7 @@ export default function WelcomeOnboardingScreen() {
 
           <View style={styles.feature}>
             <View style={styles.featureIcon}>
-              <Heart color={Colors.primary} size={24} />
+              <Heart color={Colors.light.primary} size={24} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Support Local Restaurants</Text>
@@ -75,7 +75,7 @@ export default function WelcomeOnboardingScreen() {
       <View style={styles.actionSection}>
         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
           <Text style={styles.continueButtonText}>Continue</Text>
-          <ArrowRight color={Colors.text.inverse} size={20} />
+          <ArrowRight color={Colors.light.text.inverse} size={20} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
@@ -89,7 +89,7 @@ export default function WelcomeOnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   heroSection: {
     height: 300,
@@ -111,13 +111,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     marginBottom: Spacing.sm,
   },
   heroSubtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     opacity: 0.9,
   },
   contentSection: {
@@ -127,14 +127,14 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: FontSize.xxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.md,
   },
   description: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: Spacing.xl,
@@ -146,10 +146,10 @@ const styles = StyleSheet.create({
   feature: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     padding: Spacing.lg,
     borderRadius: 16,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: Colors.light.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -170,13 +170,13 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
   },
   featureText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 20,
   },
   actionSection: {
@@ -187,10 +187,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
-    shadowColor: Colors.primary,
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -198,17 +198,17 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   continueButtonText: {
+    color: Colors.light.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.inverse,
   },
   skipButton: {
-    alignItems: 'center',
     paddingVertical: Spacing.md,
+    alignItems: 'center',
   },
   skipButtonText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
 });

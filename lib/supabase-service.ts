@@ -3,7 +3,7 @@ import type { Database } from './supabase';
 
 // Type definitions from the database
 type User = Database['public']['Tables']['users']['Row'];
-type Vendor = Database['public']['Tables']['vendors']['Row'];
+type Restaurant = Database['public']['Tables']['restaurants']['Row'];
 type Dish = Database['public']['Tables']['dishes']['Row'];
 type Order = Database['public']['Tables']['orders']['Row'];
 type Review = Database['public']['Tables']['reviews']['Row'];
@@ -81,13 +81,13 @@ export const userService = {
   }
 };
 
-// Vendor Services
-export const vendorService = {
-  // Get all vendors
-  async getAllVendors(): Promise<Vendor[]> {
+// Restaurant Services
+export const restaurantService = {
+  // Get all restaurants
+  async getAllRestaurants(): Promise<Restaurant[]> {
     try {
       const { data, error } = await supabase
-        .from('vendors')
+        .from('restaurants')
         .select('*')
         .eq('is_open', true)
         .order('name');
@@ -95,16 +95,16 @@ export const vendorService = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting vendors:', error);
+      console.error('Error getting restaurants:', error);
       return [];
     }
   },
 
-  // Get vendors by cuisine type
-  async getVendorsByCuisine(cuisineType: string): Promise<Vendor[]> {
+  // Get restaurants by cuisine type
+  async getRestaurantsByCuisine(cuisineType: string): Promise<Restaurant[]> {
     try {
       const { data, error } = await supabase
-        .from('vendors')
+        .from('restaurants')
         .select('*')
         .eq('cuisine_type', cuisineType)
         .eq('is_open', true)
@@ -113,16 +113,16 @@ export const vendorService = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting vendors by cuisine:', error);
+      console.error('Error getting restaurants by cuisine:', error);
       return [];
     }
   },
 
-  // Get nearby vendors
-  async getNearbyVendors(lat: number, lng: number, radiusKm: number = 10): Promise<Vendor[]> {
+  // Get nearby restaurants
+  async getNearbyRestaurants(lat: number, lng: number, radiusKm: number = 10): Promise<Restaurant[]> {
     try {
       const { data, error } = await supabase
-        .rpc('get_nearby_vendors', {
+        .rpc('get_nearby_restaurants', {
           user_lat: lat,
           user_lng: lng,
           radius_km: radiusKm
@@ -131,16 +131,16 @@ export const vendorService = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting nearby vendors:', error);
+      console.error('Error getting nearby restaurants:', error);
       return [];
     }
   },
 
-  // Get vendor by ID
-  async getVendorById(id: string): Promise<Vendor | null> {
+  // Get restaurant by ID
+  async getRestaurantById(id: string): Promise<Restaurant | null> {
     try {
       const { data, error } = await supabase
-        .from('vendors')
+        .from('restaurants')
         .select('*')
         .eq('id', id)
         .single();
@@ -148,7 +148,7 @@ export const vendorService = {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error getting vendor by ID:', error);
+      console.error('Error getting restaurant by ID:', error);
       return null;
     }
   }
@@ -163,7 +163,7 @@ export const dishService = {
         .from('dishes')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -171,7 +171,7 @@ export const dishService = {
             is_open
           )
         `)
-        .eq('is_available', true)
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -182,20 +182,20 @@ export const dishService = {
     }
   },
 
-  // Get dishes by vendor
-  async getDishesByVendor(vendorId: string): Promise<Dish[]> {
+  // Get dishes by restaurant
+  async getDishesByRestaurant(restaurantId: string): Promise<Dish[]> {
     try {
       const { data, error } = await supabase
         .from('dishes')
         .select('*')
-        .eq('vendor_id', vendorId)
-        .eq('is_available', true)
+        .eq('restaurant_id', restaurantId)
+        .eq('is_active', true)
         .order('category, name');
 
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting dishes by vendor:', error);
+      console.error('Error getting dishes by restaurant:', error);
       return [];
     }
   },
@@ -207,7 +207,7 @@ export const dishService = {
         .from('dishes')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -216,7 +216,7 @@ export const dishService = {
           )
         `)
         .eq('country_origin', country)
-        .eq('is_available', true)
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -234,7 +234,7 @@ export const dishService = {
         .from('dishes')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -261,7 +261,7 @@ export const dishService = {
         .from('dishes')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -270,7 +270,7 @@ export const dishService = {
           )
         `)
         .or(`name.ilike.%${query}%,description.ilike.%${query}%,country_origin.ilike.%${query}%`)
-        .eq('is_available', true)
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -286,7 +286,7 @@ export const dishService = {
 export const orderService = {
   // Create new order
   async createOrder(orderData: {
-    vendor_id: string;
+    restaurant_id: string;
     items: any[];
     total_amount: number;
     tax_amount: number;
@@ -328,7 +328,7 @@ export const orderService = {
         .from('orders')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -353,7 +353,7 @@ export const orderService = {
         .from('orders')
         .select(`
           *,
-          vendors (
+          restaurants (
             id,
             name,
             address,
@@ -393,7 +393,7 @@ export const reviewService = {
   // Create review
   async createReview(reviewData: {
     dish_id?: string;
-    vendor_id?: string;
+    restaurant_id?: string;
     order_id: string;
     rating: number;
     comment?: string;
@@ -443,8 +443,8 @@ export const reviewService = {
     }
   },
 
-  // Get reviews for vendor
-  async getVendorReviews(vendorId: string): Promise<Review[]> {
+  // Get reviews for restaurant
+  async getRestaurantReviews(restaurantId: string): Promise<Review[]> {
     try {
       const { data, error } = await supabase
         .from('reviews')
@@ -456,13 +456,13 @@ export const reviewService = {
             avatar_url
           )
         `)
-        .eq('vendor_id', vendorId)
+        .eq('restaurant_id', restaurantId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting vendor reviews:', error);
+      console.error('Error getting restaurant reviews:', error);
       return [];
     }
   }

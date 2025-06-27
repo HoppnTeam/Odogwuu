@@ -32,7 +32,7 @@ const featuredDishes = [
 
 export default function DiscoverOnboardingScreen() {
   const handleContinue = () => {
-    router.push('/onboarding/support');
+    router.push('/onboarding/cultural');
   };
 
   const handleBack = () => {
@@ -48,7 +48,7 @@ export default function DiscoverOnboardingScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <ArrowLeft color={Colors.text.primary} size={24} />
+          <ArrowLeft color={Colors.light.text.primary} size={24} />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
           <Text style={styles.skipText}>Skip</Text>
@@ -59,7 +59,7 @@ export default function DiscoverOnboardingScreen() {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.iconContainer}>
-            <Utensils color={Colors.primary} size={48} />
+            <Utensils color={Colors.light.primary} size={48} />
           </View>
           <Text style={styles.title}>Discover Authentic Flavors</Text>
           <Text style={styles.subtitle}>Explore Traditional Dishes from Across Africa</Text>
@@ -91,11 +91,11 @@ export default function DiscoverOnboardingScreen() {
                 <Text style={styles.dishDescription}>{dish.description}</Text>
                 <View style={styles.dishFooter}>
                   <View style={styles.originInfo}>
-                    <MapPin color={Colors.text.secondary} size={16} />
+                    <MapPin color={Colors.light.text.secondary} size={16} />
                     <Text style={styles.originText}>Traditional Recipe</Text>
                   </View>
                   <View style={styles.ratingInfo}>
-                    <Star color={Colors.accent} size={16} fill={Colors.accent} />
+                    <Star color={Colors.light.accent} size={16} fill={Colors.light.accent} />
                     <Text style={styles.ratingText}>4.8</Text>
                   </View>
                 </View>
@@ -144,7 +144,7 @@ export default function DiscoverOnboardingScreen() {
       <View style={styles.actionSection}>
         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
           <Text style={styles.continueButtonText}>Continue</Text>
-          <ArrowRight color={Colors.text.inverse} size={20} />
+          <ArrowRight color={Colors.light.text.inverse} size={20} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -154,7 +154,7 @@ export default function DiscoverOnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   heroSection: {
     alignItems: 'center',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: Colors.light.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.lg,
@@ -192,14 +192,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
   },
   descriptionSection: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -220,15 +220,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   dishCard: {
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 16,
     marginBottom: Spacing.md,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginRight: Spacing.sm,
   },
   countryInfo: {
@@ -266,12 +266,12 @@ const styles = StyleSheet.create({
   country: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   dishDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 20,
     marginBottom: Spacing.md,
   },
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   originText: {
     fontSize: FontSize.xs,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     marginLeft: Spacing.xs,
   },
   ratingInfo: {
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: FontSize.sm,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginLeft: Spacing.xs,
   },
   benefitsSection: {
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   benefitsTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
   },
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -334,13 +334,13 @@ const styles = StyleSheet.create({
   benefitTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
   },
   benefitText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 20,
   },
   actionSection: {
@@ -350,10 +350,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
-    shadowColor: Colors.primary,
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -363,6 +363,6 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
   },
 });

@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ArrowLeft, MapPin, CreditCard, Clock } from 'lucide-react-native';
+import { ArrowLeft, MapPin, CreditCard, Clock, Flame, AlertTriangle, Package, MessageSquare, ChefHat } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { CartItem } from '@/types';
+import { orderService } from '@/lib/order-service';
 
 export default function CheckoutScreen() {
   const { state, clearCart } = useCart();
+  const { user } = useAuth();
   const { items, total } = state;
   const [selectedPayment, setSelectedPayment] = useState('Card ending in 1234');
   const [specialInstructions, setSpecialInstructions] = useState('');
@@ -21,20 +25,63 @@ export default function CheckoutScreen() {
     { id: 'card2', name: 'Card ending in 5678', type: 'Mastercard' },
   ];
 
-  const handlePlaceOrder = () => {
-    Alert.alert(
-      'Order Placed!',
-      'Your order has been placed successfully. You will receive a notification when it\'s ready for pickup.',
-      [
-        {
-          text: 'Track Order',
-          onPress: () => {
-            clearCart();
-            router.replace('/order-tracking');
+  const getSpiceLevelText = (level: number) => {
+    const levels = ['', 'Mild', 'Light', 'Medium', 'Hot', 'Extra Hot'];
+    return levels[level] || 'Medium';
+  };
+
+  const getItemTotal = (item: CartItem) => {
+    return item.total_price;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      Alert.alert('Error', 'Please log in to place an order');
+      return;
+    }
+
+    try {
+      // Create order object with all customization data
+      const orderData = {
+        restaurant_id: '550e8400-e29b-41d4-a716-446655440001', // Mama Africa Kitchen
+        items: items.map(item => ({
+          ...item,
+          // Ensure all customization data is included
+          special_instructions: item.special_instructions || '',
+          preparation_notes: item.preparation_notes || '',
+          spice_level: item.spice_level || 3,
+          allergen_triggers: item.allergen_triggers || [],
+          extras: item.extras || [],
+        })),
+        total_amount: finalTotal,
+        tax_amount: tax,
+        service_fee: total * 0.05, // 5% service fee
+        pickup_location: 'Mama Africa Kitchen - 1234 University Ave, Minneapolis, MN',
+        payment_method: selectedPayment,
+        special_instructions: specialInstructions,
+      };
+
+      // Save order to Supabase with all customization data
+      const savedOrder = await orderService.createOrder(orderData);
+      console.log('Order saved successfully:', savedOrder);
+
+      Alert.alert(
+        'Order Placed!',
+        'Your order has been placed successfully. You will receive a notification when it\'s ready for pickup.',
+        [
+          {
+            text: 'Track Order',
+            onPress: () => {
+              clearCart();
+              router.replace('/order-tracking');
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      console.error('Error placing order:', error);
+      Alert.alert('Error', 'Failed to place order. Please try again.');
+    }
   };
 
   if (items.length === 0) {
@@ -49,7 +96,7 @@ export default function CheckoutScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft color={Colors.text.primary} size={24} />
+          <ArrowLeft color={Colors.light.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Checkout</Text>
       </View>
@@ -60,7 +107,7 @@ export default function CheckoutScreen() {
           <Text style={styles.sectionTitle}>Pickup Location</Text>
           <View style={styles.pickupCard}>
             <View style={styles.optionLeft}>
-              <MapPin color={Colors.primary} size={20} />
+              <MapPin color={Colors.light.primary} size={20} />
               <View style={styles.optionContent}>
                 <Text style={styles.optionTitle}>Mama Africa Kitchen</Text>
                 <Text style={styles.optionSubtitle}>1234 University Ave, Minneapolis, MN</Text>
@@ -83,7 +130,7 @@ export default function CheckoutScreen() {
               onPress={() => setSelectedPayment(payment.name)}
             >
               <View style={styles.optionLeft}>
-                <CreditCard color={Colors.primary} size={20} />
+                <CreditCard color={Colors.light.primary} size={20} />
                 <View style={styles.optionContent}>
                   <Text style={styles.optionTitle}>{payment.name}</Text>
                   <Text style={styles.optionSubtitle}>{payment.type}</Text>
@@ -99,15 +146,15 @@ export default function CheckoutScreen() {
 
         {/* Special Instructions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Special Instructions</Text>
+          <Text style={styles.sectionTitle}>Order Instructions</Text>
           <TextInput
             style={styles.instructionsInput}
-            placeholder="Add special instructions (optional)"
+            placeholder="Add special instructions for the entire order (optional)"
             value={specialInstructions}
             onChangeText={setSpecialInstructions}
             multiline
             numberOfLines={3}
-            placeholderTextColor={Colors.text.secondary}
+            placeholderTextColor={Colors.light.text.secondary}
           />
         </View>
 
@@ -116,16 +163,54 @@ export default function CheckoutScreen() {
           <Text style={styles.sectionTitle}>Order Summary</Text>
           
           {items.map((item) => (
-            <View key={item.dish.id} style={styles.orderItem}>
+            <View key={item.id} style={styles.orderItem}>
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.dish.name}</Text>
+                <Text style={styles.itemName}>{item.dish_name}</Text>
                 <Text style={styles.itemDetails}>
-                  {item.dish.country_flag} {item.dish.country_origin} • Qty: {item.quantity}
+                  🇳🇬 Nigeria • Qty: {item.quantity}
                 </Text>
+                
+                {/* Customization Display */}
+                <View style={styles.customizationDisplay}>
+                  {item.spice_level && (
+                    <View style={styles.customizationTag}>
+                      <Flame color={Colors.light.primary} size={12} />
+                      <Text style={styles.customizationText}>
+                        {getSpiceLevelText(item.spice_level)}
+                      </Text>
+                    </View>
+                  )}
+                  
+                  {item.allergen_triggers && item.allergen_triggers.length > 0 && (
+                    <View style={styles.customizationTag}>
+                      <AlertTriangle color={Colors.light.warning} size={12} />
+                      <Text style={styles.customizationText}>
+                        {item.allergen_triggers.length} allergen{item.allergen_triggers.length !== 1 ? 's' : ''} avoided
+                      </Text>
+                    </View>
+                  )}
+
+                  {item.extras && item.extras.length > 0 && (
+                    <View style={styles.customizationTag}>
+                      <Package color={Colors.light.accent} size={12} />
+                      <Text style={styles.customizationText}>
+                        {item.extras.length} extra{item.extras.length !== 1 ? 's' : ''} added
+                      </Text>
+                    </View>
+                  )}
+
+                  {item.preparation_notes && (
+                    <View style={styles.customizationTag}>
+                      <ChefHat color={Colors.light.info} size={12} />
+                      <Text style={styles.customizationText}>
+                        Special preparation
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-              <Text style={styles.itemPrice}>
-                ${(item.dish.price * item.quantity).toFixed(2)}
-              </Text>
+              
+              <Text style={styles.itemPrice}>${item.total_price.toFixed(2)}</Text>
             </View>
           ))}
           
@@ -139,6 +224,11 @@ export default function CheckoutScreen() {
             <Text style={styles.summaryValue}>${tax.toFixed(2)}</Text>
           </View>
           
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Service Fee</Text>
+            <Text style={styles.summaryValue}>${(total * 0.05).toFixed(2)}</Text>
+          </View>
+          
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>${finalTotal.toFixed(2)}</Text>
@@ -147,7 +237,7 @@ export default function CheckoutScreen() {
 
         {/* Estimated Pickup Time */}
         <View style={styles.pickupTime}>
-          <Clock color={Colors.primary} size={20} />
+          <Clock color={Colors.light.primary} size={20} />
           <Text style={styles.pickupTimeText}>
             Estimated pickup time: 15-20 minutes
           </Text>
@@ -172,47 +262,48 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border.light,
   },
   backButton: {
     marginRight: Spacing.md,
   },
   title: {
-    fontSize: FontSize.xxl,
+    fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   content: {
     flex: 1,
-    paddingHorizontal: Spacing.lg,
   },
   section: {
-    marginBottom: Spacing.xl,
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border.light,
   },
   sectionTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.md,
   },
   pickupCard: {
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
-    borderWidth: 2,
-    borderColor: Colors.primary,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -220,8 +311,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   optionCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '10',
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primary + '10',
   },
   optionLeft: {
     flexDirection: 'row',
@@ -235,18 +326,18 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
   },
   optionSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   pickupNote: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
     marginTop: Spacing.xs,
   },
   radioButton: {
@@ -254,19 +345,19 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.border.medium,
+    borderColor: Colors.light.border.medium,
   },
   radioButtonSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primary,
   },
   instructionsInput: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     textAlignVertical: 'top',
     minHeight: 80,
   },
@@ -276,7 +367,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.light,
+    borderBottomColor: Colors.light.border.light,
   },
   itemInfo: {
     flex: 1,
@@ -284,18 +375,18 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
   },
   itemDetails: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   itemPrice: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -305,33 +396,33 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   summaryValue: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: Colors.border.light,
+    borderTopColor: Colors.light.border.light,
     paddingTop: Spacing.sm,
     marginTop: Spacing.sm,
   },
   totalLabel: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   totalValue: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   pickupTime: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.light.primary + '10',
     padding: Spacing.md,
     borderRadius: 12,
     marginBottom: Spacing.lg,
@@ -339,24 +430,71 @@ const styles = StyleSheet.create({
   pickupTimeText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
     marginLeft: Spacing.sm,
   },
   footer: {
     padding: Spacing.lg,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.light,
+    borderTopColor: Colors.light.border.light,
   },
   placeOrderButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
   },
   placeOrderText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
+  },
+  customizationDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  customizationTag: {
+    backgroundColor: Colors.light.primary + '10',
+    borderRadius: 12,
+    padding: Spacing.xs,
+    marginRight: Spacing.sm,
+  },
+  customizationText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.text.primary,
+  },
+  instructionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  instructionText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.text.secondary,
+  },
+  extrasDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  extraDisplay: {
+    backgroundColor: Colors.light.primary + '10',
+    borderRadius: 12,
+    padding: Spacing.xs,
+    marginRight: Spacing.sm,
+  },
+  extraDisplayText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.text.primary,
+  },
+  extraDisplayPrice: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.primary,
   },
 });

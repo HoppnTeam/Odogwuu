@@ -1,11 +1,19 @@
--- Hoppn Database Schema
--- Run this in your Supabase SQL editor
+-- Complete Database Fix Script
+-- Run this in your Supabase SQL editor to fix all current issues
 
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "postgis";
+-- First, let's drop and recreate the problematic tables to ensure clean state
+DROP TABLE IF EXISTS public.reviews CASCADE;
+DROP TABLE IF EXISTS public.orders CASCADE;
+DROP TABLE IF EXISTS public.dishes CASCADE;
+DROP TABLE IF EXISTS public.restaurants CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;
 
--- Create custom types
+-- Drop custom types
+DROP TYPE IF EXISTS order_status CASCADE;
+DROP TYPE IF EXISTS payment_status CASCADE;
+DROP TYPE IF EXISTS cuisine_region CASCADE;
+
+-- Recreate custom types
 CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'cancelled');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
 CREATE TYPE cuisine_region AS ENUM ('West African', 'East African', 'North African', 'South African', 'Central African');
@@ -23,8 +31,8 @@ CREATE TABLE public.users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Vendors table (restaurants)
-CREATE TABLE public.vendors (
+-- Restaurants table (managed through web interface)
+CREATE TABLE public.restaurants (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -46,6 +54,7 @@ CREATE TABLE public.vendors (
 -- Dishes table (Hoppn-curated authentic African dishes)
 CREATE TABLE public.dishes (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    restaurant_id UUID REFERENCES public.restaurants(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT NOT NULL,
@@ -73,7 +82,7 @@ CREATE TABLE public.dishes (
 CREATE TABLE public.orders (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
-    vendor_id UUID REFERENCES public.vendors(id) ON DELETE CASCADE NOT NULL,
+    restaurant_id UUID REFERENCES public.restaurants(id) ON DELETE CASCADE NOT NULL,
     items JSONB NOT NULL, -- Array of CartItem objects
     total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount > 0),
     tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -94,34 +103,40 @@ CREATE TABLE public.reviews (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
     dish_id UUID REFERENCES public.dishes(id) ON DELETE SET NULL,
-    vendor_id UUID REFERENCES public.vendors(id) ON DELETE SET NULL,
+    restaurant_id UUID REFERENCES public.restaurants(id) ON DELETE SET NULL,
     order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE NOT NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
+    spice_level_rating INTEGER CHECK (spice_level_rating >= 1 AND spice_level_rating <= 5),
+    authenticity_rating INTEGER CHECK (authenticity_rating >= 1 AND authenticity_rating <= 5),
+    cultural_experience_rating INTEGER CHECK (cultural_experience_rating >= 1 AND cultural_experience_rating <= 5),
+    overall_experience INTEGER CHECK (overall_experience >= 1 AND overall_experience <= 5),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    -- Ensure either dish_id or vendor_id is provided
+    -- Ensure either dish_id or restaurant_id is provided
     CONSTRAINT review_target_check CHECK (
-        (dish_id IS NOT NULL AND vendor_id IS NULL) OR 
-        (dish_id IS NULL AND vendor_id IS NOT NULL)
+        (dish_id IS NOT NULL AND restaurant_id IS NULL) OR 
+        (dish_id IS NULL AND restaurant_id IS NOT NULL)
     )
 );
 
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON public.users(email);
-CREATE INDEX idx_vendors_cuisine_type ON public.vendors(cuisine_type);
-CREATE INDEX idx_vendors_location ON public.vendors USING GIST (ST_Point(longitude, latitude));
-CREATE INDEX idx_vendors_is_open ON public.vendors(is_open);
+CREATE INDEX idx_restaurants_cuisine_type ON public.restaurants(cuisine_type);
+CREATE INDEX idx_restaurants_location ON public.restaurants USING GIST (ST_Point(longitude, latitude));
+CREATE INDEX idx_restaurants_is_open ON public.restaurants(is_open);
+CREATE INDEX idx_dishes_restaurant_id ON public.dishes(restaurant_id);
 CREATE INDEX idx_dishes_country_origin ON public.dishes(country_origin);
 CREATE INDEX idx_dishes_base_spice_level ON public.dishes(base_spice_level);
 CREATE INDEX idx_dishes_is_active ON public.dishes(is_active);
 CREATE INDEX idx_orders_user_id ON public.orders(user_id);
-CREATE INDEX idx_orders_vendor_id ON public.orders(vendor_id);
+CREATE INDEX idx_orders_restaurant_id ON public.orders(restaurant_id);
 CREATE INDEX idx_orders_status ON public.orders(status);
 CREATE INDEX idx_orders_created_at ON public.orders(created_at DESC);
 CREATE INDEX idx_reviews_user_id ON public.reviews(user_id);
 CREATE INDEX idx_reviews_dish_id ON public.reviews(dish_id);
-CREATE INDEX idx_reviews_vendor_id ON public.reviews(vendor_id);
+CREATE INDEX idx_reviews_restaurant_id ON public.reviews(restaurant_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -134,15 +149,16 @@ $$ language 'plpgsql';
 
 -- Create triggers for updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_vendors_updated_at BEFORE UPDATE ON public.vendors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_restaurants_updated_at BEFORE UPDATE ON public.restaurants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_dishes_updated_at BEFORE UPDATE ON public.dishes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON public.reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Row Level Security (RLS) Policies
 
 -- Enable RLS on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.restaurants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dishes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
@@ -157,11 +173,11 @@ CREATE POLICY "Users can update their own profile" ON public.users
 CREATE POLICY "Users can insert their own profile" ON public.users
     FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Vendors policies (public read, vendor write)
-CREATE POLICY "Anyone can view vendors" ON public.vendors
+-- Restaurants policies (public read, restaurant admin write through web interface)
+CREATE POLICY "Anyone can view restaurants" ON public.restaurants
     FOR SELECT USING (true);
 
--- Dishes policies (public read, Hoppn admin write)
+-- Dishes policies (public read, restaurant admin write through web interface)
 CREATE POLICY "Anyone can view active dishes" ON public.dishes
     FOR SELECT USING (is_active = true);
 
@@ -191,101 +207,113 @@ CREATE POLICY "Users can create reviews for their orders" ON public.reviews
 CREATE POLICY "Users can update their own reviews" ON public.reviews
     FOR UPDATE USING (auth.uid() = user_id);
 
--- Functions for common operations
+-- Insert sample data for testing
+INSERT INTO public.restaurants (
+    id, name, description, image_url, cuisine_type, rating, pickup_time, 
+    address, latitude, longitude, is_open, opening_hours, phone_number, email
+) VALUES 
+(
+    '550e8400-e29b-41d4-a716-446655440001',
+    'Mama Africa Kitchen',
+    'Authentic African cuisine from across the continent',
+    'https://example.com/mama-africa.jpg',
+    'West African',
+    4.5,
+    '20-30 min',
+    '1234 University Ave, Minneapolis, MN 55401',
+    44.9778,
+    -93.2650,
+    true,
+    '11:00 AM - 10:00 PM',
+    '+1-612-555-0123',
+    'info@mamaafricakitchen.com'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440002',
+    'Ethiopian Spice House',
+    'Traditional Ethiopian dishes with authentic spices',
+    'https://example.com/ethiopian-spice.jpg',
+    'East African',
+    4.3,
+    '15-25 min',
+    '5678 Lake Street, Minneapolis, MN 55406',
+    44.9550,
+    -93.2650,
+    true,
+    '10:00 AM - 9:00 PM',
+    '+1-612-555-0456',
+    'info@ethiopianspicehouse.com'
+);
 
--- Function to calculate vendor rating
-CREATE OR REPLACE FUNCTION calculate_vendor_rating(vendor_uuid UUID)
-RETURNS DECIMAL(3,2) AS $$
+-- Insert sample dishes
+INSERT INTO public.dishes (
+    id, restaurant_id, name, description, image_url, base_price, category, base_spice_level,
+    country_origin, country_flag, origin_story, base_ingredients, is_vegetarian, is_vegan
+) VALUES 
+(
+    '660e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440001',
+    'Jollof Rice',
+    'Aromatic rice cooked in a rich tomato sauce with African spices',
+    'https://example.com/jollof-rice.jpg',
+    16.99,
+    'Main Course',
+    3,
+    'Nigeria',
+    '🇳🇬',
+    'Jollof Rice is a beloved West African dish that originated in the Wolof Empire. It represents celebration and community, often served at weddings and festivals.',
+    ARRAY['rice', 'tomatoes', 'onions', 'bell peppers', 'scotch bonnet peppers', 'thyme', 'bay leaves'],
+    false,
+    false
+),
+(
+    '660e8400-e29b-41d4-a716-446655440002',
+    '550e8400-e29b-41d4-a716-446655440001',
+    'Suya',
+    'Spicy grilled meat skewers with peanut coating',
+    'https://example.com/suya.jpg',
+    14.99,
+    'Appetizer',
+    4,
+    'Nigeria',
+    '🇳🇬',
+    'Suya is a popular street food in Northern Nigeria, traditionally made by the Hausa people. The peanut coating and spices create a unique flavor profile.',
+    ARRAY['beef', 'peanuts', 'cayenne pepper', 'paprika', 'onion powder', 'garlic powder'],
+    false,
+    false
+),
+(
+    '660e8400-e29b-41d4-a716-446655440003',
+    '550e8400-e29b-41d4-a716-446655440002',
+    'Doro Wat',
+    'Spicy Ethiopian chicken stew with berbere spice',
+    'https://example.com/doro-wat.jpg',
+    18.99,
+    'Main Course',
+    4,
+    'Ethiopia',
+    '🇪🇹',
+    'Doro Wat is a traditional Ethiopian dish often served during holidays and celebrations. The berbere spice blend gives it its distinctive heat and flavor.',
+    ARRAY['chicken', 'berbere', 'onions', 'garlic', 'ginger', 'cardamom', 'cloves'],
+    false,
+    false
+);
+
+-- Create a function to automatically create user profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
 BEGIN
-    RETURN (
-        SELECT COALESCE(AVG(r.rating), 0.0)
-        FROM public.reviews r
-        WHERE r.vendor_id = vendor_uuid
-    );
+    INSERT INTO public.users (id, email, full_name)
+    VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email));
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to get nearby vendors
-CREATE OR REPLACE FUNCTION get_nearby_vendors(
-    user_lat DECIMAL(10,8),
-    user_lng DECIMAL(11,8),
-    radius_km INTEGER DEFAULT 10
-)
-RETURNS TABLE (
-    id UUID,
-    name TEXT,
-    description TEXT,
-    image_url TEXT,
-    cuisine_type cuisine_region,
-    rating DECIMAL(3,2),
-    pickup_time TEXT,
-    address TEXT,
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
-    is_open BOOLEAN,
-    opening_hours TEXT,
-    distance_km DECIMAL(10,2)
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        v.id,
-        v.name,
-        v.description,
-        v.image_url,
-        v.cuisine_type,
-        v.rating,
-        v.pickup_time,
-        v.address,
-        v.latitude,
-        v.longitude,
-        v.is_open,
-        v.opening_hours,
-        ST_Distance(
-            ST_Point(user_lng, user_lat)::geography,
-            ST_Point(v.longitude, v.latitude)::geography
-        ) / 1000 as distance_km
-    FROM public.vendors v
-    WHERE ST_DWithin(
-        ST_Point(user_lng, user_lat)::geography,
-        ST_Point(v.longitude, v.latitude)::geography,
-        radius_km * 1000
-    )
-    ORDER BY distance_km;
-END;
-$$ LANGUAGE plpgsql;
+-- Create trigger to automatically create user profile
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Function to calculate Minnesota sales tax (varies by city)
-CREATE OR REPLACE FUNCTION calculate_mn_tax(
-    subtotal DECIMAL(10,2),
-    city TEXT DEFAULT 'Minneapolis'
-)
-RETURNS DECIMAL(10,2) AS $$
-DECLARE
-    tax_rate DECIMAL(5,4);
-BEGIN
-    -- Minnesota tax rates (simplified - you may want to use a more comprehensive lookup)
-    CASE city
-        WHEN 'Minneapolis' THEN tax_rate := 0.0875; -- 8.75%
-        WHEN 'St. Paul' THEN tax_rate := 0.0875;    -- 8.75%
-        WHEN 'Bloomington' THEN tax_rate := 0.08125; -- 8.125%
-        ELSE tax_rate := 0.0875; -- Default to Minneapolis rate
-    END CASE;
-    
-    RETURN ROUND(subtotal * tax_rate, 2);
-END;
-$$ LANGUAGE plpgsql;
-
--- Insert sample data (optional - for testing)
--- You can uncomment and modify these inserts for testing
-
-/*
--- Sample vendors
-INSERT INTO public.vendors (name, description, image_url, cuisine_type, pickup_time, address, latitude, longitude, opening_hours, phone_number, email) VALUES
-('Mama Africa Kitchen', 'Authentic West African cuisine with traditional recipes passed down through generations', 'https://images.pexels.com/photos/1565982/pexels-photo-1565982.jpeg', 'West African', '25-35 min', '1234 University Ave, Minneapolis, MN', 44.9778, -93.2650, '11:00 AM - 10:00 PM', '+1-612-555-0123', 'mama@africakitchen.com'),
-('Ethiopian Spice House', 'Traditional Ethiopian dishes served on fresh injera bread', 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg', 'East African', '30-40 min', '5678 Cedar Ave, Minneapolis, MN', 44.9537, -93.2473, '12:00 PM - 9:00 PM', '+1-612-555-0124', 'spice@ethiopianhouse.com');
-
--- Sample dishes
-INSERT INTO public.dishes (vendor_id, name, description, image_url, price, category, spice_level, country_origin, country_flag, origin_story, ingredients, is_vegetarian, is_vegan) VALUES
-((SELECT id FROM public.vendors WHERE name = 'Mama Africa Kitchen' LIMIT 1), 'Jollof Rice', 'Fragrant rice cooked in a rich tomato sauce with spices, served with grilled chicken', 'https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg', 16.99, 'Main Course', 2, 'Nigeria', '🇳🇬', 'Jollof rice is a beloved West African dish with origins dating back to the 14th century in the Senegambian region.', ARRAY['Rice', 'Tomatoes', 'Onions', 'Bell peppers', 'Spices', 'Chicken stock'], false, false);
-*/ 
+-- Refresh the schema cache
+NOTIFY pgrst, 'reload schema'; 

@@ -1,11 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function WelcomeScreen() {
+  const { user, tempUser, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      // If user is authenticated and has completed onboarding, go to home
+      if (user && !tempUser) {
+        router.replace('/(tabs)');
+      }
+      // If user is in onboarding process, go to onboarding
+      else if (tempUser && !tempUser.onboarding_completed) {
+        router.replace('/onboarding');
+      }
+    }
+  }, [user, tempUser, loading]);
+
   const handleGetStarted = () => {
     router.push('/auth/register');
   };
@@ -13,6 +29,17 @@ export default function WelcomeScreen() {
   const handleSignIn = () => {
     router.push('/auth/login');
   };
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,7 +106,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -102,14 +129,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.primary,
+    color: Colors.light.primary,
     textAlign: 'center',
     marginBottom: Spacing.md,
   },
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     paddingHorizontal: Spacing.md,
@@ -131,39 +158,39 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   featureText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
   },
   buttonContainer: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xl,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.light,
+    borderTopColor: Colors.light.border.light,
     gap: Spacing.md,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: Colors.primary,
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -171,14 +198,20 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-    borderRadius: 12,
-    backgroundColor: Colors.background.secondary,
   },
   secondaryButtonText: {
-    color: Colors.secondary,
+    color: Colors.light.primary,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: FontSize.lg,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.text.secondary,
   },
 });

@@ -5,25 +5,36 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { signIn } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
-    setLoading(true);
     
-    // Simulate login - in real app, use Supabase auth
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const success = await signIn(email, password);
+      
+      if (success) {
+        // Navigate to home (user is already authenticated)
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Error', 'Login failed. Please check your credentials.');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Login failed.');
+    } finally {
       setLoading(false);
-      router.replace('/(tabs)');
-    }, 1000);
+    }
   };
 
   const handleBackPress = () => {
@@ -42,7 +53,7 @@ export default function LoginScreen() {
           onPress={handleBackPress}
           activeOpacity={0.7}
         >
-          <ArrowLeft color={Colors.text.primary} size={24} />
+          <ArrowLeft color={Colors.light.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Sign in to continue your culinary journey</Text>
@@ -50,7 +61,7 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <Mail color={Colors.text.secondary} size={20} style={styles.inputIcon} />
+          <Mail color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -58,19 +69,19 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            placeholderTextColor={Colors.text.secondary}
+            placeholderTextColor={Colors.light.text.secondary}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Lock color={Colors.text.secondary} size={20} style={styles.inputIcon} />
+          <Lock color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            placeholderTextColor={Colors.text.secondary}
+            placeholderTextColor={Colors.light.text.secondary}
           />
         </View>
 
@@ -103,7 +114,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -116,13 +127,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   form: {
     flex: 1,
@@ -133,11 +144,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.light,
+    borderColor: Colors.light.border.light,
     borderRadius: 12,
     marginBottom: Spacing.md,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
   },
   inputIcon: {
     marginRight: Spacing.sm,
@@ -147,7 +158,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   forgotPassword: {
     alignItems: 'flex-end',
@@ -156,15 +167,15 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   loginButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    shadowColor: Colors.primary,
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -174,7 +185,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   loginButtonText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -185,11 +196,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   footerLink: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
 });

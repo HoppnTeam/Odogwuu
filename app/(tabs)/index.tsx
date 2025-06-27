@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
 import { countries, mockDishes } from '@/data/mockData';
+import { userService } from '@/lib/supabase-service';
+import { onboardingService } from '@/lib/onboarding-service';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -19,7 +21,26 @@ const SpiceLevel = ({ level }: { level: number }) => {
 };
 
 export default function DiscoverScreen() {
-  const featuredDishes = mockDishes.slice(0, 4);
+  const [personalizedDishes, setPersonalizedDishes] = useState<any[]>([]);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPersonalization = async () => {
+      setLoading(true);
+      const user = await userService.getCurrentUser();
+      if (user) {
+        const { data } = await onboardingService.getOnboardingData(user.id);
+        setOnboardingData(data);
+        const { dishes } = await onboardingService.getPersonalizedRecommendations(user.id);
+        setPersonalizedDishes(dishes || []);
+      }
+      setLoading(false);
+    };
+    fetchPersonalization();
+  }, []);
+
+  const featuredDishes = personalizedDishes.length > 0 ? personalizedDishes : mockDishes.slice(0, 4);
 
   const handleCountryPress = (countryName: string) => {
     router.push(`/country/${countryName.toLowerCase()}`);
@@ -34,6 +55,11 @@ export default function DiscoverScreen() {
           <Text style={styles.subheading}>
             Explore authentic dishes and learn about their rich cultural heritage
           </Text>
+          {onboardingData && (
+            <Text style={styles.personalizedMsg}>
+              Welcome back{onboardingData.fullName ? `, ${onboardingData.fullName}` : ''}! Your recommendations are personalized.
+            </Text>
+          )}
         </View>
 
         {/* African Countries Section */}
@@ -66,33 +92,35 @@ export default function DiscoverScreen() {
             </TouchableOpacity>
           </View>
 
-          {featuredDishes.map((dish) => (
-            <TouchableOpacity
-              key={dish.id}
-              style={styles.dishCard}
-              onPress={() => router.push(`/dish/${dish.id}`)}
-            >
-              <Image source={{ uri: dish.image_url }} style={styles.dishImage} />
-              <View style={styles.dishContent}>
-                <View style={styles.dishHeader}>
-                  <Text style={styles.dishName}>{dish.name}</Text>
-                  <View style={styles.countryInfo}>
-                    <Text style={styles.dishFlag}>{dish.country_flag}</Text>
-                    <Text style={styles.dishOrigin}>{dish.country_origin}</Text>
+          {loading ? (
+            <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginVertical: 20 }} />
+          ) : (
+            featuredDishes.map((dish) => (
+              <TouchableOpacity
+                key={dish.id}
+                style={styles.dishCard}
+                onPress={() => router.push(`/dish/${dish.id}`)}
+              >
+                <Image source={{ uri: dish.image_url }} style={styles.dishImage} />
+                <View style={styles.dishContent}>
+                  <View style={styles.dishHeader}>
+                    <Text style={styles.dishName}>{dish.name}</Text>
+                    <View style={styles.countryInfo}>
+                      <Text style={styles.dishFlag}>{dish.country_flag}</Text>
+                      <Text style={styles.dishOrigin}>{dish.country_origin}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.dishDescription} numberOfLines={2}>
+                    {dish.description}
+                  </Text>
+                  <View style={styles.dishFooter}>
+                    <Text style={styles.dishPrice}>${dish.price?.toFixed(2) ?? ''}</Text>
+                    <SpiceLevel level={dish.spice_level} />
                   </View>
                 </View>
-                
-                <Text style={styles.dishDescription} numberOfLines={2}>
-                  {dish.description}
-                </Text>
-                
-                <View style={styles.dishFooter}>
-                  <Text style={styles.dishPrice}>${dish.price.toFixed(2)}</Text>
-                  <SpiceLevel level={dish.spice_level} />
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Call to Action */}
@@ -116,7 +144,7 @@ export default function DiscoverScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -125,13 +153,13 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   subheading: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 22,
   },
   section: {
@@ -147,24 +175,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   seeAll: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   countriesScroll: {
     paddingHorizontal: Spacing.lg,
   },
   countryCard: {
     width: 160,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     marginRight: Spacing.md,
     alignItems: 'center',
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -177,22 +205,22 @@ const styles = StyleSheet.create({
   countryName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.xs,
   },
   countryDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 18,
   },
   dishCard: {
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     borderRadius: 12,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -216,7 +244,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginRight: Spacing.sm,
   },
   countryInfo: {
@@ -230,12 +258,12 @@ const styles = StyleSheet.create({
   dishOrigin: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   dishDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 20,
     marginBottom: Spacing.md,
   },
@@ -247,7 +275,7 @@ const styles = StyleSheet.create({
   dishPrice: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   spiceContainer: {
     flexDirection: 'row',
@@ -260,7 +288,7 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   ctaSection: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     margin: Spacing.lg,
     padding: Spacing.xl,
     borderRadius: 16,
@@ -269,25 +297,32 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   ctaSubtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
   },
   ctaButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
   },
   ctaButtonText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
+  },
+  personalizedMsg: {
+    fontSize: FontSize.md,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.light.text.secondary,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
   },
 });

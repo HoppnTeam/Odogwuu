@@ -25,11 +25,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.text.secondary,
+        tabBarActiveTintColor: Colors.light.primary,
+        tabBarInactiveTintColor: Colors.light.text.secondary,
         tabBarStyle: {
-          backgroundColor: Colors.background.primary,
-          borderTopColor: Colors.border.light,
+          backgroundColor: Colors.light.background.primary,
+          borderTopColor: Colors.light.border.light,
           paddingBottom: 8,
           paddingTop: 8,
           height: 80,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -8,
     top: -8,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     borderRadius: 12,
     minWidth: 20,
     height: 20,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cartBadgeText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: 10,
     fontFamily: 'Montserrat-Bold',
   },

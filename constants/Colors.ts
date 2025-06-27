@@ -1,47 +1,76 @@
 export const Colors = {
-  primary: '#F15029',
-  secondary: '#4C8BF5', 
-  accent: '#FFBF00',
-  
-  // Neutral colors
-  black: '#000000',
-  white: '#FFFFFF',
-  gray: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
-    200: '#E5E7EB',
-    300: '#D1D5DB',
-    400: '#9CA3AF',
-    500: '#6B7280',
-    600: '#4B5563',
-    700: '#374151',
-    800: '#1F2937',
-    900: '#111827',
+  light: {
+    primary: '#F15029',
+    secondary: '#4C8BF5',
+    accent: '#FFBF00',
+    black: '#000000',
+    white: '#FFFFFF',
+    gray: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      300: '#D1D5DB',
+      400: '#9CA3AF',
+      500: '#6B7280',
+      600: '#4B5563',
+      700: '#374151',
+      800: '#1F2937',
+      900: '#111827',
+    },
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+    background: {
+      primary: '#FFFFFF',
+      secondary: '#F9FAFB',
+    },
+    text: {
+      primary: '#111827',
+      secondary: '#6B7280',
+      inverse: '#FFFFFF',
+    },
+    border: {
+      light: '#E5E7EB',
+      medium: '#D1D5DB',
+      dark: '#9CA3AF',
+    },
   },
-  
-  // Status colors
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
-  
-  // Background colors
-  background: {
-    primary: '#FFFFFF',
-    secondary: '#F9FAFB',
+  dark: {
+    primary: '#F15029',
+    secondary: '#4C8BF5',
+    accent: '#FFBF00',
+    black: '#000000',
+    white: '#FFFFFF',
+    gray: {
+      50: '#181A1B',
+      100: '#23272A',
+      200: '#2C2F33',
+      300: '#36393F',
+      400: '#40444B',
+      500: '#4F545C',
+      600: '#5865F2', // Use blue for accent in dark
+      700: '#6E7681',
+      800: '#99AAB5',
+      900: '#C7D0D9',
+    },
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+    background: {
+      primary: '#181A1B',
+      secondary: '#23272A',
+    },
+    text: {
+      primary: '#F3F4F6',
+      secondary: '#9CA3AF',
+      inverse: '#181A1B',
+    },
+    border: {
+      light: '#23272A',
+      medium: '#36393F',
+      dark: '#40444B',
+    },
   },
-  
-  // Text colors
-  text: {
-    primary: '#111827',
-    secondary: '#6B7280',
-    inverse: '#FFFFFF',
-  },
-  
-  // Border colors
-  border: {
-    light: '#E5E7EB',
-    medium: '#D1D5DB',
-    dark: '#9CA3AF',
-  }
 };

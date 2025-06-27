@@ -44,7 +44,7 @@ export default function CountryDishesScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <ArrowLeft color={Colors.text.primary} size={24} />
+          <ArrowLeft color={Colors.light.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>{country.name} Cuisine</Text>
       </View>
@@ -60,7 +60,7 @@ export default function CountryDishesScreen() {
         {/* Dishes Section */}
         <View style={styles.dishesSection}>
           <View style={styles.sectionHeader}>
-            <BookOpen color={Colors.primary} size={24} />
+            <BookOpen color={Colors.light.primary} size={24} />
             <Text style={styles.sectionTitle}>Traditional Dishes</Text>
           </View>
           
@@ -128,7 +128,7 @@ export default function CountryDishesScreen() {
         {/* Cultural Information */}
         <View style={styles.culturalSection}>
           <View style={styles.sectionHeader}>
-            <MapPin color={Colors.primary} size={24} />
+            <MapPin color={Colors.light.primary} size={24} />
             <Text style={styles.sectionTitle}>About {country.name} Cuisine</Text>
           </View>
           
@@ -176,7 +176,7 @@ export default function CountryDishesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingTop: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.light,
+    borderBottomColor: Colors.light.border.light,
   },
   backButton: {
     marginRight: Spacing.md,
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   countryHeader: {
     alignItems: 'center',
     padding: Spacing.xl,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
   },
   countryFlag: {
     fontSize: 80,
@@ -207,13 +207,13 @@ const styles = StyleSheet.create({
   countryName: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   countryDescription: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
     paddingHorizontal: Spacing.md,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginLeft: Spacing.sm,
   },
   noDishesContainer: {
@@ -239,14 +239,14 @@ const styles = StyleSheet.create({
   noDishesText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     textAlign: 'center',
   },
   dishCard: {
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     borderRadius: 16,
     marginBottom: Spacing.lg,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -270,18 +270,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginRight: Spacing.sm,
   },
   dishPrice: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   dishDescription: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 22,
     marginBottom: Spacing.md,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   tag: {
-    backgroundColor: Colors.success + '20',
+    backgroundColor: Colors.light.success + '20',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: 12,
@@ -315,25 +315,25 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: FontSize.xs,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.success,
+    color: Colors.light.success,
   },
   storyPreview: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     padding: Spacing.md,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    borderLeftColor: Colors.light.primary,
   },
   storyTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.sm,
   },
   storyText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 20,
     marginBottom: Spacing.sm,
   },
@@ -343,21 +343,21 @@ const styles = StyleSheet.create({
   learnMoreText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   culturalSection: {
     padding: Spacing.lg,
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
   },
   culturalCard: {
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     padding: Spacing.lg,
     borderRadius: 16,
   },
   culturalText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 24,
     marginBottom: Spacing.lg,
   },
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
   },
   ctaSection: {
     alignItems: 'center',
@@ -384,23 +384,23 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   ctaButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
-    shadowColor: Colors.primary,
+    shadowColor: Colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   ctaButtonText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
   },

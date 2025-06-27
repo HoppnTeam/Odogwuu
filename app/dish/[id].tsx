@@ -28,7 +28,7 @@ const EducationalSection = ({ icon: Icon, title, content }: {
 }) => (
   <View style={styles.educationalSection}>
     <View style={styles.educationalHeader}>
-      <Icon color={Colors.primary} size={20} />
+      <Icon color={Colors.light.primary} size={20} />
       <Text style={styles.educationalTitle}>{title}</Text>
     </View>
     <Text style={styles.educationalContent}>{content}</Text>
@@ -68,7 +68,7 @@ export default function DishDetailScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft color={Colors.text.inverse} size={24} />
+            <ArrowLeft color={Colors.light.text.inverse} size={24} />
           </TouchableOpacity>
         </View>
 
@@ -120,7 +120,7 @@ export default function DishDetailScreen() {
           {/* Ingredients */}
           <View style={styles.educationalSection}>
             <View style={styles.educationalHeader}>
-              <Utensils color={Colors.primary} size={20} />
+              <Utensils color={Colors.light.primary} size={20} />
               <Text style={styles.educationalTitle}>Ingredients</Text>
             </View>
             <View style={styles.ingredientsList}>
@@ -145,7 +145,7 @@ export default function DishDetailScreen() {
           {dish.native_regions && dish.native_regions.length > 0 && (
             <View style={styles.educationalSection}>
               <View style={styles.educationalHeader}>
-                <MapPin color={Colors.primary} size={20} />
+                <MapPin color={Colors.light.primary} size={20} />
                 <Text style={styles.educationalTitle}>Native Regions/Variations</Text>
               </View>
               <View style={styles.regionsList}>
@@ -196,7 +196,7 @@ export default function DishDetailScreen() {
             onChangeText={setSpecialInstructions}
             multiline
             numberOfLines={3}
-            placeholderTextColor={Colors.text.secondary}
+            placeholderTextColor={Colors.light.text.secondary}
           />
         </View>
       </ScrollView>
@@ -208,7 +208,7 @@ export default function DishDetailScreen() {
             onPress={() => setQuantity(Math.max(1, quantity - 1))}
             style={styles.quantityButton}
           >
-            <Minus color={Colors.text.secondary} size={20} />
+            <Minus color={Colors.light.text.secondary} size={20} />
           </TouchableOpacity>
           
           <Text style={styles.quantity}>{quantity}</Text>
@@ -217,7 +217,7 @@ export default function DishDetailScreen() {
             onPress={() => setQuantity(quantity + 1)}
             style={styles.quantityButton}
           >
-            <Plus color={Colors.text.secondary} size={20} />
+            <Plus color={Colors.light.text.secondary} size={20} />
           </TouchableOpacity>
         </View>
         
@@ -225,7 +225,7 @@ export default function DishDetailScreen() {
           style={styles.addToCartButton}
           onPress={handleAddToCart}
         >
-          <ShoppingCart color={Colors.text.inverse} size={20} />
+          <ShoppingCart color={Colors.light.text.inverse} size={20} />
           <Text style={styles.addToCartText}>Add to Cart • ${totalPrice.toFixed(2)}</Text>
         </TouchableOpacity>
       </View>
@@ -236,7 +236,7 @@ export default function DishDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
   },
   imageContainer: {
     position: 'relative',
@@ -247,14 +247,11 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     left: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 8,
   },
   dishInfo: {
     padding: Spacing.lg,
@@ -269,7 +266,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.xxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginRight: Spacing.sm,
   },
   countryInfo: {
@@ -282,18 +279,18 @@ const styles = StyleSheet.create({
   origin: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   price: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.primary,
+    color: Colors.light.primary,
     marginBottom: Spacing.md,
   },
   description: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 24,
     marginBottom: Spacing.lg,
   },
@@ -305,7 +302,7 @@ const styles = StyleSheet.create({
   spiceLabel: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginRight: Spacing.sm,
   },
   chili: {
@@ -322,7 +319,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   tag: {
-    backgroundColor: Colors.success + '20',
+    backgroundColor: Colors.light.success + '20',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: 16,
@@ -330,25 +327,25 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.success,
+    color: Colors.light.success,
   },
   educationalContainer: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     padding: Spacing.lg,
   },
   educationalMainTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   educationalSection: {
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     padding: Spacing.lg,
     borderRadius: 12,
     marginBottom: Spacing.md,
-    shadowColor: Colors.black,
+    shadowColor: Colors.light.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -362,40 +359,40 @@ const styles = StyleSheet.create({
   educationalTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginLeft: Spacing.sm,
   },
   educationalContent: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
     lineHeight: 24,
   },
   ingredientsList: {
     gap: Spacing.sm,
   },
   ingredient: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     padding: Spacing.sm,
     borderRadius: 8,
   },
   ingredientText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.light.text.secondary,
   },
   regionsList: {
     gap: Spacing.sm,
   },
   regionItem: {
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.light.primary + '10',
     padding: Spacing.sm,
     borderRadius: 8,
   },
   regionText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.primary,
+    color: Colors.light.primary,
   },
   instructionsSection: {
     paddingHorizontal: Spacing.lg,
@@ -404,16 +401,16 @@ const styles = StyleSheet.create({
   instructionsTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginBottom: Spacing.md,
   },
   instructionsInput: {
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     textAlignVertical: 'top',
     minHeight: 80,
   },
@@ -421,15 +418,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.light.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.light,
+    borderTopColor: Colors.light.border.light,
     gap: Spacing.md,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background.secondary,
+    backgroundColor: Colors.light.background.secondary,
     borderRadius: 25,
     paddingHorizontal: Spacing.sm,
   },
@@ -439,7 +436,7 @@ const styles = StyleSheet.create({
   quantity: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.light.text.primary,
     marginHorizontal: Spacing.md,
     minWidth: 30,
     textAlign: 'center',
@@ -449,13 +446,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.light.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     gap: Spacing.sm,
   },
   addToCartText: {
-    color: Colors.text.inverse,
+    color: Colors.light.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
   },
