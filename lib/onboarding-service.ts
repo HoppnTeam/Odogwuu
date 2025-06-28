@@ -2,27 +2,50 @@ import { supabase } from './supabase';
 import { OnboardingData, User } from '@/types';
 
 export const onboardingService = {
-  // Save onboarding data to user profile
+  // Save onboarding data to both users and onboarding_data tables
   async saveOnboardingData(userId: string, onboardingData: Omit<OnboardingData, 'userId' | 'completedAt' | 'onboardingVersion'>): Promise<{ success: boolean; error?: string }> {
     try {
-      const dataToSave: OnboardingData = {
-        ...onboardingData,
-        userId,
-        completedAt: new Date().toISOString(),
-        onboardingVersion: '1.0'
-      };
+      // Convert onboarding data to database format
+      const dietaryPreferences = onboardingData.dietaryPreferences?.map(pref => pref) || [];
+      const spiceTolerance = onboardingData.spiceLevel || 3;
+      const explorationStyle = onboardingData.explorationStyle || 'balanced';
+      const orderFrequency = onboardingData.orderFrequency || 'occasional';
 
-      const { error } = await supabase
+      // 1. Update users table with core preferences
+      const { error: userError } = await supabase
         .from('users')
         .update({
-          onboarding_completed: true,
-          onboarding_data: dataToSave
+          dietary_preferences: dietaryPreferences,
+          spice_tolerance: spiceTolerance,
+          updated_at: new Date().toISOString()
         })
         .eq('id', userId);
 
-      if (error) {
-        console.error('Error saving onboarding data:', error);
-        return { success: false, error: error.message };
+      if (userError) {
+        console.error('Error updating user table:', userError);
+        return { success: false, error: userError.message };
+      }
+
+      // 2. Save detailed onboarding data to onboarding_data table
+      const { error: onboardingError } = await supabase
+        .from('onboarding_data')
+        .upsert({
+          user_id: userId,
+          dietary_preferences: dietaryPreferences,
+          spice_tolerance: spiceTolerance,
+          exploration_style: explorationStyle,
+          order_frequency: orderFrequency,
+          location_permissions: false, // Will be updated when user grants location
+          notification_permissions: false, // Will be updated when user grants notifications
+          onboarding_completed: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (onboardingError) {
+        console.error('Error saving onboarding data:', onboardingError);
+        return { success: false, error: onboardingError.message };
       }
 
       return { success: true };
@@ -32,13 +55,13 @@ export const onboardingService = {
     }
   },
 
-  // Get onboarding data for a user
+  // Get onboarding data for a user (from onboarding_data table)
   async getOnboardingData(userId: string): Promise<{ data?: OnboardingData; error?: string }> {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('onboarding_data, onboarding_completed')
-        .eq('id', userId)
+        .from('onboarding_data')
+        .select('*')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -46,7 +69,19 @@ export const onboardingService = {
         return { error: error.message };
       }
 
-      return { data: data?.onboarding_data };
+      if (!data) {
+        return { data: undefined };
+      }
+
+      // Convert database format to app format
+      const onboardingData: OnboardingData = {
+        dietaryPreferences: data.dietary_preferences || [],
+        spiceLevel: data.spice_tolerance || 3,
+        explorationStyle: data.exploration_style || 'balanced',
+        orderFrequency: data.order_frequency || 'occasional'
+      };
+
+      return { data: onboardingData };
     } catch (error: any) {
       console.error('Error in getOnboardingData:', error);
       return { error: error.message };
@@ -57,12 +92,12 @@ export const onboardingService = {
   async isOnboardingCompleted(userId: string): Promise<{ completed: boolean; error?: string }> {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('onboarding_data')
         .select('onboarding_completed')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
         console.error('Error checking onboarding status:', error);
         return { completed: false, error: error.message };
       }
@@ -77,22 +112,32 @@ export const onboardingService = {
   // Update partial onboarding data (for step-by-step saving)
   async updateOnboardingData(userId: string, partialData: Partial<OnboardingData>): Promise<{ success: boolean; error?: string }> {
     try {
-      // First get existing data
-      const { data: existingData } = await this.getOnboardingData(userId);
-      
-      const updatedData = {
-        ...existingData,
-        ...partialData,
-        userId,
-        onboardingVersion: '1.0'
+      // Convert partial data to database format
+      const updateData: any = {
+        updated_at: new Date().toISOString()
       };
 
+      if (partialData.dietaryPreferences) {
+        updateData.dietary_preferences = partialData.dietaryPreferences;
+      }
+      if (partialData.spiceLevel) {
+        updateData.spice_tolerance = partialData.spiceLevel;
+      }
+      if (partialData.explorationStyle) {
+        updateData.exploration_style = partialData.explorationStyle;
+      }
+      if (partialData.orderFrequency) {
+        updateData.order_frequency = partialData.orderFrequency;
+      }
+
       const { error } = await supabase
-        .from('users')
-        .update({
-          onboarding_data: updatedData
-        })
-        .eq('id', userId);
+        .from('onboarding_data')
+        .upsert({
+          user_id: userId,
+          ...updateData
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error('Error updating onboarding data:', error);
@@ -119,10 +164,11 @@ export const onboardingService = {
       let query = supabase
         .from('dishes')
         .select('*')
+        .eq('is_active', true)
         .limit(20);
 
       // Filter by dietary preferences
-      if (onboardingData.dietaryPreferences.length > 0 && !onboardingData.dietaryPreferences.includes('no-restrictions')) {
+      if (onboardingData.dietaryPreferences && onboardingData.dietaryPreferences.length > 0 && !onboardingData.dietaryPreferences.includes('no-restrictions')) {
         if (onboardingData.dietaryPreferences.includes('vegetarian')) {
           query = query.eq('is_vegetarian', true);
         }
@@ -133,7 +179,7 @@ export const onboardingService = {
       }
 
       // Filter by spice level
-      query = query.lte('spice_level', onboardingData.spiceLevel);
+      query = query.lte('base_spice_level', onboardingData.spiceLevel);
 
       const { data: dishes, error } = await query;
 

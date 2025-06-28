@@ -146,29 +146,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('No user available for onboarding completion');
       }
 
+      // Import and use the onboarding service
+      const { onboardingService } = await import('@/lib/onboarding-service');
+
+      // Save onboarding data to both users and onboarding_data tables
+      const result = await onboardingService.saveOnboardingData(user.id, onboardingData);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save onboarding data');
+      }
+
       // Update temp user with onboarding completion
       const updatedTempUser = { ...tempUser, onboarding_completed: true };
       setTempUser(updatedTempUser);
-
-      // Convert onboarding data to database format
-      const dietaryPreferences = onboardingData.dietaryPreferences?.map(pref => pref) || [];
-      const spiceTolerance = onboardingData.spiceLevel || 3;
-
-      // Save complete user profile to Supabase (upsert to handle both new and existing profiles)
-      const { error } = await supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          email: tempUser.email,
-          full_name: tempUser.full_name,
-          dietary_preferences: dietaryPreferences,
-          spice_tolerance: spiceTolerance,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
-
-      if (error) throw error;
 
       // Clear temp user and redirect to home
       setTempUser(null);

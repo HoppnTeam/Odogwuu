@@ -31,6 +31,16 @@ export interface Order {
   updated_at: string;
 }
 
+export interface OrderWithRestaurant extends Order {
+  restaurants: {
+    id: string;
+    name: string;
+    address: string;
+    pickup_time: string;
+    is_open: boolean;
+  };
+}
+
 export const orderService = {
   // Create a new order
   async createOrder(orderData: CreateOrderData): Promise<Order | null> {
@@ -80,7 +90,7 @@ export const orderService = {
   },
 
   // Get user's orders
-  async getUserOrders(): Promise<Order[]> {
+  async getUserOrders(): Promise<OrderWithRestaurant[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -115,7 +125,7 @@ export const orderService = {
   },
 
   // Get order by ID
-  async getOrderById(orderId: string): Promise<Order | null> {
+  async getOrderById(orderId: string): Promise<OrderWithRestaurant | null> {
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -160,6 +170,111 @@ export const orderService = {
       return true;
     } catch (error) {
       console.error('OrderService.updateOrderStatus error:', error);
+      return false;
+    }
+  },
+
+  // Subscribe to real-time order updates
+  subscribeToOrderUpdates(orderId: string, callback: (order: OrderWithRestaurant) => void) {
+    const subscription = supabase
+      .channel(`order-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`
+        },
+        (payload) => {
+          console.log('Order update received:', payload);
+          // Fetch the updated order with restaurant details
+          this.getOrderById(orderId).then(order => {
+            if (order) {
+              callback(order);
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return subscription;
+  },
+
+  // Subscribe to user's order updates
+  async subscribeToUserOrders(callback: (orders: OrderWithRestaurant[]) => void) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user for order subscription');
+      return null;
+    }
+
+    const subscription = supabase
+      .channel(`user-orders-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('User order update received:', payload);
+          // Fetch updated user orders
+          this.getUserOrders().then(orders => {
+            callback(orders);
+          });
+        }
+      )
+      .subscribe();
+
+    return subscription;
+  },
+
+  // Cancel order
+  async cancelOrder(orderId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error cancelling order:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('OrderService.cancelOrder error:', error);
+      return false;
+    }
+  },
+
+  // Mark order as picked up
+  async markOrderPickedUp(orderId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'picked_up',
+          actual_pickup_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error marking order as picked up:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('OrderService.markOrderPickedUp error:', error);
       return false;
     }
   }

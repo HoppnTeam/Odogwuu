@@ -41,11 +41,11 @@ export class ReviewService {
   }
 
   /**
-   * Create a new review for a vendor/restaurant
+   * Create a new review for a restaurant
    */
-  static async createVendorReview(
+  static async createRestaurantReview(
     userId: string,
-    vendorId: string,
+    restaurantId: string,
     orderId: string,
     reviewData: ReviewFormData
   ): Promise<Review> {
@@ -54,7 +54,7 @@ export class ReviewService {
         .from('reviews')
         .insert({
           user_id: userId,
-          vendor_id: vendorId,
+          restaurant_id: restaurantId,
           order_id: orderId,
           rating: reviewData.rating,
           comment: reviewData.comment,
@@ -67,13 +67,13 @@ export class ReviewService {
         .single();
 
       if (error) {
-        console.error('Error creating vendor review:', error);
+        console.error('Error creating restaurant review:', error);
         throw new Error('Failed to create review');
       }
 
       return data;
     } catch (error) {
-      console.error('ReviewService.createVendorReview error:', error);
+      console.error('ReviewService.createRestaurantReview error:', error);
       throw error;
     }
   }
@@ -113,9 +113,9 @@ export class ReviewService {
   }
 
   /**
-   * Get reviews for a specific vendor
+   * Get reviews for a specific restaurant
    */
-  static async getVendorReviews(vendorId: string): Promise<ReviewWithDetails[]> {
+  static async getRestaurantReviews(restaurantId: string): Promise<ReviewWithDetails[]> {
     try {
       const { data, error } = await supabase
         .from('reviews')
@@ -125,21 +125,21 @@ export class ReviewService {
             full_name,
             avatar_url
           ),
-          vendor: vendors (
+          restaurant: restaurants (
             name
           )
         `)
-        .eq('vendor_id', vendorId)
+        .eq('restaurant_id', restaurantId)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching vendor reviews:', error);
+        console.error('Error fetching restaurant reviews:', error);
         throw new Error('Failed to fetch reviews');
       }
 
       return data || [];
     } catch (error) {
-      console.error('ReviewService.getVendorReviews error:', error);
+      console.error('ReviewService.getRestaurantReviews error:', error);
       throw error;
     }
   }
@@ -158,7 +158,7 @@ export class ReviewService {
             country_origin,
             country_flag
           ),
-          vendor: vendors (
+          restaurant: restaurants (
             name
           )
         `)
@@ -202,25 +202,25 @@ export class ReviewService {
   }
 
   /**
-   * Check if user has already reviewed a vendor
+   * Check if user has already reviewed a restaurant
    */
-  static async hasUserReviewedVendor(userId: string, vendorId: string): Promise<boolean> {
+  static async hasUserReviewedRestaurant(userId: string, restaurantId: string): Promise<boolean> {
     try {
       const { data, error } = await supabase
         .from('reviews')
         .select('id')
         .eq('user_id', userId)
-        .eq('vendor_id', vendorId)
+        .eq('restaurant_id', restaurantId)
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-        console.error('Error checking vendor review:', error);
+        console.error('Error checking restaurant review:', error);
         throw new Error('Failed to check review status');
       }
 
       return !!data;
     } catch (error) {
-      console.error('ReviewService.hasUserReviewedVendor error:', error);
+      console.error('ReviewService.hasUserReviewedRestaurant error:', error);
       throw error;
     }
   }
@@ -236,8 +236,13 @@ export class ReviewService {
       const { data, error } = await supabase
         .from('reviews')
         .update({
-          ...reviewData,
-          updated_at: new Date().toISOString(),
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          spice_level_rating: reviewData.spice_level_rating,
+          authenticity_rating: reviewData.authenticity_rating,
+          cultural_experience_rating: reviewData.cultural_experience_rating,
+          overall_experience: reviewData.overall_experience,
+          updated_at: new Date().toISOString()
         })
         .eq('id', reviewId)
         .select()
@@ -287,41 +292,45 @@ export class ReviewService {
 
       if (error) {
         console.error('Error fetching dish ratings:', error);
-        throw new Error('Failed to fetch ratings');
+        return 0;
       }
 
-      if (!data || data.length === 0) return 0;
+      if (!data || data.length === 0) {
+        return 0;
+      }
 
       const totalRating = data.reduce((sum, review) => sum + review.rating, 0);
       return totalRating / data.length;
     } catch (error) {
       console.error('ReviewService.getDishAverageRating error:', error);
-      throw error;
+      return 0;
     }
   }
 
   /**
-   * Get average rating for a vendor
+   * Get average rating for a restaurant
    */
-  static async getVendorAverageRating(vendorId: string): Promise<number> {
+  static async getRestaurantAverageRating(restaurantId: string): Promise<number> {
     try {
       const { data, error } = await supabase
         .from('reviews')
         .select('rating')
-        .eq('vendor_id', vendorId);
+        .eq('restaurant_id', restaurantId);
 
       if (error) {
-        console.error('Error fetching vendor ratings:', error);
-        throw new Error('Failed to fetch ratings');
+        console.error('Error fetching restaurant ratings:', error);
+        return 0;
       }
 
-      if (!data || data.length === 0) return 0;
+      if (!data || data.length === 0) {
+        return 0;
+      }
 
       const totalRating = data.reduce((sum, review) => sum + review.rating, 0);
       return totalRating / data.length;
     } catch (error) {
-      console.error('ReviewService.getVendorAverageRating error:', error);
-      throw error;
+      console.error('ReviewService.getRestaurantAverageRating error:', error);
+      return 0;
     }
   }
 } 

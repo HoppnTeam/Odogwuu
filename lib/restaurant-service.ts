@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
 import { locationService, UserLocation, RestaurantLocation } from './location-service';
-import { mockRestaurants } from '@/data/mockData';
 import { Restaurant } from '@/types';
 
 export interface NearbyRestaurant extends Restaurant {
@@ -16,23 +15,29 @@ export interface RestaurantFilters {
 }
 
 class RestaurantService {
-  private useMockData = true; // Toggle between mock and Supabase data
+  private useMockData = false; // Changed to false to use Supabase data
 
   /**
-   * Get all restaurants (mock data for now)
+   * Get all restaurants from Supabase
    */
   async getAllRestaurants(): Promise<Restaurant[]> {
     if (this.useMockData) {
+      // Fallback to mock data if needed
+      const { mockRestaurants } = await import('@/data/mockData');
       return mockRestaurants;
     }
 
     try {
       const { data, error } = await supabase
-        .from('vendors')
+        .from('restaurants')
         .select('*')
-        .eq('is_active', true);
+        .order('name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching restaurants:', error);
+        return [];
+      }
+
       return data || [];
     } catch (error) {
       console.error('Error fetching restaurants:', error);
@@ -94,10 +99,25 @@ class RestaurantService {
    */
   async getRestaurantsByCuisine(cuisineType: string): Promise<Restaurant[]> {
     try {
-      const allRestaurants = await this.getAllRestaurants();
-      return allRestaurants.filter(restaurant => 
-        restaurant.cuisine_type.toLowerCase() === cuisineType.toLowerCase()
-      );
+      if (this.useMockData) {
+        const allRestaurants = await this.getAllRestaurants();
+        return allRestaurants.filter(restaurant => 
+          restaurant.cuisine_type.toLowerCase() === cuisineType.toLowerCase()
+        );
+      }
+
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('cuisine_type', cuisineType)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching restaurants by cuisine:', error);
+        return [];
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Error fetching restaurants by cuisine:', error);
       return [];
@@ -109,8 +129,23 @@ class RestaurantService {
    */
   async getRestaurantById(id: string): Promise<Restaurant | null> {
     try {
-      const allRestaurants = await this.getAllRestaurants();
-      return allRestaurants.find(restaurant => restaurant.id === id) || null;
+      if (this.useMockData) {
+        const allRestaurants = await this.getAllRestaurants();
+        return allRestaurants.find(restaurant => restaurant.id === id) || null;
+      }
+
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching restaurant by ID:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error fetching restaurant by ID:', error);
       return null;
@@ -122,14 +157,29 @@ class RestaurantService {
    */
   async searchRestaurants(query: string): Promise<Restaurant[]> {
     try {
-      const allRestaurants = await this.getAllRestaurants();
-      const searchTerm = query.toLowerCase();
-      
-      return allRestaurants.filter(restaurant => 
-        restaurant.name.toLowerCase().includes(searchTerm) ||
-        restaurant.description.toLowerCase().includes(searchTerm) ||
-        restaurant.cuisine_type.toLowerCase().includes(searchTerm)
-      );
+      if (this.useMockData) {
+        const allRestaurants = await this.getAllRestaurants();
+        const searchTerm = query.toLowerCase();
+        
+        return allRestaurants.filter(restaurant => 
+          restaurant.name.toLowerCase().includes(searchTerm) ||
+          restaurant.description.toLowerCase().includes(searchTerm) ||
+          restaurant.cuisine_type.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,cuisine_type.ilike.%${query}%`)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error searching restaurants:', error);
+        return [];
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Error searching restaurants:', error);
       return [];
@@ -227,7 +277,7 @@ class RestaurantService {
   }
 
   /**
-   * Toggle between mock and Supabase data
+   * Toggle between mock and Supabase data (for development/testing)
    */
   setUseMockData(useMock: boolean): void {
     this.useMockData = useMock;
@@ -240,10 +290,10 @@ class RestaurantService {
     try {
       const allRestaurants = await this.getAllRestaurants();
       const cuisineTypes = [...new Set(allRestaurants.map(r => r.cuisine_type))];
-      return ['All', ...cuisineTypes];
+      return cuisineTypes.sort();
     } catch (error) {
       console.error('Error getting cuisine types:', error);
-      return ['All'];
+      return [];
     }
   }
 }

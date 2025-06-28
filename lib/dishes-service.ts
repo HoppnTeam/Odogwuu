@@ -13,14 +13,29 @@ export interface DishWithRestaurant extends Dish {
 export async function getDishesByCountry(countryName: string): Promise<DishWithRestaurant[]> {
   try {
     const { data, error } = await supabase
-      .rpc('get_dishes_by_country', { country_name: countryName });
+      .from('dishes')
+      .select(`
+        *,
+        restaurants (
+          name,
+          cuisine_type
+        )
+      `)
+      .eq('country_origin', countryName)
+      .eq('is_active', true)
+      .order('name', { ascending: true });
 
     if (error) {
       console.error('Error fetching dishes by country:', error);
       return [];
     }
 
-    return data || [];
+    // Transform data to match interface
+    return (data || []).map(dish => ({
+      ...dish,
+      restaurant_name: dish.restaurants?.name || '',
+      cuisine_type: dish.restaurants?.cuisine_type || ''
+    }));
   } catch (error) {
     console.error('Error in getDishesByCountry:', error);
     return [];
@@ -33,14 +48,29 @@ export async function getDishesByCountry(countryName: string): Promise<DishWithR
 export async function getFeaturedDishes(): Promise<DishWithRestaurant[]> {
   try {
     const { data, error } = await supabase
-      .rpc('get_featured_dishes');
+      .from('dishes')
+      .select(`
+        *,
+        restaurants (
+          name,
+          cuisine_type
+        )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
     if (error) {
       console.error('Error fetching featured dishes:', error);
       return [];
     }
 
-    return data || [];
+    // Transform data to match interface
+    return (data || []).map(dish => ({
+      ...dish,
+      restaurant_name: dish.restaurants?.name || '',
+      cuisine_type: dish.restaurants?.cuisine_type || ''
+    }));
   } catch (error) {
     console.error('Error in getFeaturedDishes:', error);
     return [];
@@ -55,7 +85,7 @@ export async function getAllDishes(): Promise<Dish[]> {
     const { data, error } = await supabase
       .from('dishes')
       .select('*')
-      .eq('is_available', true)
+      .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (error) {
@@ -71,25 +101,25 @@ export async function getAllDishes(): Promise<Dish[]> {
 }
 
 /**
- * Fetch dishes by vendor/restaurant
+ * Fetch dishes by restaurant
  */
-export async function getDishesByVendor(vendorId: string): Promise<Dish[]> {
+export async function getDishesByRestaurant(restaurantId: string): Promise<Dish[]> {
   try {
     const { data, error } = await supabase
       .from('dishes')
       .select('*')
-      .eq('vendor_id', vendorId)
-      .eq('is_available', true)
+      .eq('restaurant_id', restaurantId)
+      .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching dishes by vendor:', error);
+      console.error('Error fetching dishes by restaurant:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('Error in getDishesByVendor:', error);
+    console.error('Error in getDishesByRestaurant:', error);
     return [];
   }
 }
@@ -103,7 +133,7 @@ export async function getDishById(dishId: string): Promise<Dish | null> {
       .from('dishes')
       .select('*')
       .eq('id', dishId)
-      .eq('is_available', true)
+      .eq('is_active', true)
       .single();
 
     if (error) {
@@ -126,8 +156,8 @@ export async function getDishesBySpiceLevel(spiceLevel: number): Promise<Dish[]>
     const { data, error } = await supabase
       .from('dishes')
       .select('*')
-      .eq('is_available', true)
-      .eq('spice_level', spiceLevel)
+      .eq('is_active', true)
+      .eq('base_spice_level', spiceLevel)
       .order('name', { ascending: true });
 
     if (error) {
@@ -150,7 +180,7 @@ export async function searchDishes(query: string): Promise<Dish[]> {
     const { data, error } = await supabase
       .from('dishes')
       .select('*')
-      .eq('is_available', true)
+      .eq('is_active', true)
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .order('name', { ascending: true });
 
