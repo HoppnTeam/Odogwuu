@@ -76,7 +76,7 @@ export default function ExplorationStyleScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -87,10 +87,10 @@ export default function ExplorationStyleScreen() {
         {/* Title Section */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>
-            What's Your Food Adventure Style?
+            What&apos;s Your Food Adventure Style?
           </Text>
           <Text style={styles.subtitle}>
-            Help us suggest the perfect African cuisines for you
+            We&apos;ll personalize your experience based on your culinary exploration style
           </Text>
         </View>
 
@@ -135,7 +135,7 @@ export default function ExplorationStyleScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>Continue</Text>
-          <ArrowRight color={Colors.light.text.inverse} size={20} />
+          <ArrowRight color={Colors.text.inverse} size={20} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -145,7 +145,7 @@ export default function ExplorationStyleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.sm,
     lineHeight: 40,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     paddingHorizontal: Spacing.md,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   explanationSection: {
     paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     marginHorizontal: Spacing.lg,
     borderRadius: 12,
     padding: Spacing.md,
@@ -195,13 +195,13 @@ const styles = StyleSheet.create({
   explanationTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
   },
   explanationText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   actionSection: {
@@ -216,10 +216,10 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   nextButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
@@ -227,14 +227,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   nextButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },

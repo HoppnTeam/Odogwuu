@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
             ]}
             onPress={() => handlePreferenceToggle('cultural')}
           >
-            <Globe color={Colors.light.primary} size={24} />
+            <Globe color={Colors.primary} size={24} />
             <Text style={styles.optionTitle}>Cultural Exploration</Text>
             <Text style={styles.optionDescription}>Discover African heritage through food</Text>
           </TouchableOpacity>
@@ -51,7 +51,7 @@ export default function OnboardingScreen() {
             ]}
             onPress={() => handlePreferenceToggle('authentic')}
           >
-            <Star color={Colors.light.primary} size={24} />
+            <Star color={Colors.primary} size={24} />
             <Text style={styles.optionTitle}>Authentic Flavors</Text>
             <Text style={styles.optionDescription}>Experience traditional African recipes</Text>
           </TouchableOpacity>
@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
             ]}
             onPress={() => handlePreferenceToggle('adventure')}
           >
-            <Heart color={Colors.light.primary} size={24} />
+            <Heart color={Colors.primary} size={24} />
             <Text style={styles.optionTitle}>Culinary Adventure</Text>
             <Text style={styles.optionDescription}>Try new and exciting dishes</Text>
           </TouchableOpacity>
@@ -75,7 +75,7 @@ export default function OnboardingScreen() {
             ]}
             onPress={() => handlePreferenceToggle('community')}
           >
-            <Flame color={Colors.light.primary} size={24} />
+            <Flame color={Colors.primary} size={24} />
             <Text style={styles.optionTitle}>Community Connection</Text>
             <Text style={styles.optionDescription}>Support local African restaurants</Text>
           </TouchableOpacity>
@@ -92,7 +92,7 @@ export default function OnboardingScreen() {
           disabled={selectedPreferences.length === 0}
         >
           <Text style={styles.continueButtonText}>Continue</Text>
-          <ArrowRight color={Colors.light.text.inverse} size={20} />
+          <ArrowRight color={Colors.text.inverse} size={20} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -102,7 +102,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   content: {
     padding: Spacing.lg,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.md,
     lineHeight: 40,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: Spacing.xl,
@@ -129,52 +129,52 @@ const styles = StyleSheet.create({
   },
   option: {
     padding: Spacing.md,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },
   optionSelected: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
   },
   optionTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginLeft: Spacing.md,
   },
   optionDescription: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginLeft: Spacing.md,
   },
   footer: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xl,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
   },
   continueButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   continueButtonDisabled: {
-    backgroundColor: Colors.light.border.light,
+    backgroundColor: Colors.border.light,
   },
   continueButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
     marginRight: Spacing.sm,

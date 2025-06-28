@@ -101,7 +101,7 @@ export default function OrderFrequencyScreen() {
           onPress={handleBack}
           activeOpacity={0.7}
         >
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>How often do you order food?</Text>
         <Text style={styles.subtitle}>
@@ -141,7 +141,7 @@ export default function OrderFrequencyScreen() {
               
               {selectedFrequency === option.value && (
                 <View style={styles.checkIcon}>
-                  <Check color={Colors.light.text.inverse} size={20} />
+                  <Check color={Colors.text.inverse} size={20} />
                 </View>
               )}
             </TouchableOpacity>
@@ -172,7 +172,7 @@ export default function OrderFrequencyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
     lineHeight: 40,
   },
   subtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     lineHeight: 22,
   },
   content: {
@@ -204,9 +204,9 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   optionCard: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderWidth: 2,
-    borderColor: Colors.light.border.light,
+    borderColor: Colors.border.light,
     borderRadius: 12,
     padding: Spacing.lg,
     flexDirection: 'row',
@@ -214,8 +214,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   optionCardSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary + '10',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
   },
   optionContent: {
     flex: 1,
@@ -223,23 +223,23 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   optionLabelSelected: {
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   optionDescription: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   optionDescriptionSelected: {
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   checkIcon: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -249,28 +249,28 @@ const styles = StyleSheet.create({
   actionSection: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xl,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
   },
   completeButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   completeButtonDisabled: {
-    backgroundColor: Colors.light.border.medium,
+    backgroundColor: Colors.border.medium,
     shadowOpacity: 0,
     elevation: 0,
   },
   completeButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },

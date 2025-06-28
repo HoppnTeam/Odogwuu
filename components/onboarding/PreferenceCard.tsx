@@ -55,16 +55,16 @@ export function PreferenceCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 2,
-    borderColor: Colors.light.border.light,
+    borderColor: Colors.border.light,
   },
   containerSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary + '10', // 10% opacity
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10', // 10% opacity
   },
   content: {
     flexDirection: 'row',
@@ -80,20 +80,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   titleSelected: {
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   description: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     lineHeight: 18,
   },
   descriptionSelected: {
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   checkmark: {
     position: 'absolute',
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkmarkText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.sm,
     fontFamily: 'Montserrat-Bold',
   },

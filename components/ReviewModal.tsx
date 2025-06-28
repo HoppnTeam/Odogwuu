@@ -24,9 +24,9 @@ const StarRating = ({ rating, onRatingChange }: { rating: number; onRatingChange
         style={styles.starButton}
       >
         <Star
-          color={star <= rating ? Colors.light.accent : Colors.light.border.medium}
+          color={star <= rating ? Colors.accent : Colors.border.medium}
           size={24}
-          fill={star <= rating ? Colors.light.accent : 'transparent'}
+          fill={star <= rating ? Colors.accent : 'transparent'}
         />
       </TouchableOpacity>
     ))}
@@ -48,7 +48,7 @@ const RatingCategory = ({
 }) => (
   <View style={styles.ratingCategory}>
     <View style={styles.ratingHeader}>
-      <Icon color={Colors.light.primary} size={20} />
+      <Icon color={Colors.primary} size={20} />
       <Text style={styles.ratingTitle}>{title}</Text>
     </View>
     <Text style={styles.ratingDescription}>{description}</Text>
@@ -105,7 +105,7 @@ export default function ReviewModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={handleClose} disabled={loading}>
-              <X color={Colors.light.text.primary} size={24} />
+              <X color={Colors.text.primary} size={24} />
             </TouchableOpacity>
           </View>
 
@@ -153,7 +153,7 @@ export default function ReviewModal({
             {/* Comment */}
             <View style={styles.commentSection}>
               <View style={styles.commentHeader}>
-                <MessageSquare color={Colors.light.primary} size={20} />
+                <MessageSquare color={Colors.primary} size={20} />
                 <Text style={styles.sectionTitle}>Share Your Experience</Text>
               </View>
               <Text style={styles.sectionSubtitle}>Tell us about your dining experience (optional)</Text>
@@ -162,7 +162,7 @@ export default function ReviewModal({
                 value={comment}
                 onChangeText={setComment}
                 placeholder="Share your thoughts about the food, service, cultural experience..."
-                placeholderTextColor={Colors.light.text.secondary}
+                placeholderTextColor={Colors.text.secondary}
                 multiline
                 numberOfLines={4}
                 maxLength={500}
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     width: '100%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -219,17 +219,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   modalTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   modalSubtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
   },
@@ -242,13 +242,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
   },
   sectionSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginBottom: Spacing.md,
   },
   starContainer: {
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   ratingCategory: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     marginBottom: Spacing.md,
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
   ratingTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginLeft: Spacing.sm,
   },
   ratingDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginBottom: Spacing.sm,
   },
   commentSection: {
@@ -293,19 +293,19 @@ const styles = StyleSheet.create({
   commentInput: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.light.border.light,
+    borderColor: Colors.border.light,
     borderRadius: 12,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     minHeight: 100,
     textAlignVertical: 'top',
   },
   characterCount: {
     fontSize: FontSize.xs,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'right',
     marginTop: Spacing.xs,
   },
@@ -315,12 +315,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
     gap: Spacing.md,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     padding: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   submitButton: {
     flex: 1,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     padding: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
@@ -343,6 +343,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
   },
 }); 

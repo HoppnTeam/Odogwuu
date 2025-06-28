@@ -106,7 +106,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -129,14 +129,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.primary,
+    color: Colors.primary,
     textAlign: 'center',
     marginBottom: Spacing.md,
   },
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     paddingHorizontal: Spacing.md,
@@ -158,39 +158,39 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   featureText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
   },
   buttonContainer: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xl,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
     gap: Spacing.md,
   },
   primaryButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: Colors.light.primary,
+    color: Colors.primary,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
   },
@@ -212,6 +212,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
 });

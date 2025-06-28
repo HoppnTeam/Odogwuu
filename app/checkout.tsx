@@ -63,21 +63,13 @@ export default function CheckoutScreen() {
 
       // Save order to Supabase with all customization data
       const savedOrder = await orderService.createOrder(orderData);
-      console.log('Order saved successfully:', savedOrder);
-
-      Alert.alert(
-        'Order Placed!',
-        'Your order has been placed successfully. You will receive a notification when it\'s ready for pickup.',
-        [
-          {
-            text: 'Track Order',
-            onPress: () => {
-              clearCart();
-              router.replace('/order-tracking');
-            }
-          }
-        ]
-      );
+      if (savedOrder) {
+        // Order saved successfully
+        clearCart();
+        router.push(`/order-tracking?orderId=${savedOrder.id}`);
+      } else {
+        Alert.alert('Error', 'Failed to create order. Please try again.');
+      }
     } catch (error) {
       console.error('Error placing order:', error);
       Alert.alert('Error', 'Failed to place order. Please try again.');
@@ -96,7 +88,7 @@ export default function CheckoutScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Checkout</Text>
       </View>
@@ -107,7 +99,7 @@ export default function CheckoutScreen() {
           <Text style={styles.sectionTitle}>Pickup Location</Text>
           <View style={styles.pickupCard}>
             <View style={styles.optionLeft}>
-              <MapPin color={Colors.light.primary} size={20} />
+              <MapPin color={Colors.primary} size={20} />
               <View style={styles.optionContent}>
                 <Text style={styles.optionTitle}>Mama Africa Kitchen</Text>
                 <Text style={styles.optionSubtitle}>1234 University Ave, Minneapolis, MN</Text>
@@ -130,7 +122,7 @@ export default function CheckoutScreen() {
               onPress={() => setSelectedPayment(payment.name)}
             >
               <View style={styles.optionLeft}>
-                <CreditCard color={Colors.light.primary} size={20} />
+                <CreditCard color={Colors.primary} size={20} />
                 <View style={styles.optionContent}>
                   <Text style={styles.optionTitle}>{payment.name}</Text>
                   <Text style={styles.optionSubtitle}>{payment.type}</Text>
@@ -154,7 +146,7 @@ export default function CheckoutScreen() {
             onChangeText={setSpecialInstructions}
             multiline
             numberOfLines={3}
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
@@ -174,7 +166,7 @@ export default function CheckoutScreen() {
                 <View style={styles.customizationDisplay}>
                   {item.spice_level && (
                     <View style={styles.customizationTag}>
-                      <Flame color={Colors.light.primary} size={12} />
+                      <Flame color={Colors.primary} size={12} />
                       <Text style={styles.customizationText}>
                         {getSpiceLevelText(item.spice_level)}
                       </Text>
@@ -183,7 +175,7 @@ export default function CheckoutScreen() {
                   
                   {item.allergen_triggers && item.allergen_triggers.length > 0 && (
                     <View style={styles.customizationTag}>
-                      <AlertTriangle color={Colors.light.warning} size={12} />
+                      <AlertTriangle color={Colors.warning} size={12} />
                       <Text style={styles.customizationText}>
                         {item.allergen_triggers.length} allergen{item.allergen_triggers.length !== 1 ? 's' : ''} avoided
                       </Text>
@@ -192,7 +184,7 @@ export default function CheckoutScreen() {
 
                   {item.extras && item.extras.length > 0 && (
                     <View style={styles.customizationTag}>
-                      <Package color={Colors.light.accent} size={12} />
+                      <Package color={Colors.accent} size={12} />
                       <Text style={styles.customizationText}>
                         {item.extras.length} extra{item.extras.length !== 1 ? 's' : ''} added
                       </Text>
@@ -201,7 +193,7 @@ export default function CheckoutScreen() {
 
                   {item.preparation_notes && (
                     <View style={styles.customizationTag}>
-                      <ChefHat color={Colors.light.info} size={12} />
+                      <ChefHat color={Colors.info} size={12} />
                       <Text style={styles.customizationText}>
                         Special preparation
                       </Text>
@@ -237,7 +229,7 @@ export default function CheckoutScreen() {
 
         {/* Estimated Pickup Time */}
         <View style={styles.pickupTime}>
-          <Clock color={Colors.light.primary} size={20} />
+          <Clock color={Colors.primary} size={20} />
           <Text style={styles.pickupTimeText}>
             Estimated pickup time: 15-20 minutes
           </Text>
@@ -262,7 +254,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -270,7 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   backButton: {
     marginRight: Spacing.md,
@@ -278,7 +270,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   content: {
     flex: 1,
@@ -286,16 +278,16 @@ const styles = StyleSheet.create({
   section: {
     padding: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   sectionTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.md,
   },
   pickupCard: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
   },
@@ -303,7 +295,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -311,8 +303,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   optionCardSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary + '10',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
   },
   optionLeft: {
     flexDirection: 'row',
@@ -326,18 +318,18 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   optionSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   pickupNote: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
     marginTop: Spacing.xs,
   },
   radioButton: {
@@ -345,19 +337,19 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.light.border.medium,
+    borderColor: Colors.border.medium,
   },
   radioButtonSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
   },
   instructionsInput: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
     padding: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     textAlignVertical: 'top',
     minHeight: 80,
   },
@@ -367,7 +359,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   itemInfo: {
     flex: 1,
@@ -375,18 +367,18 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   itemDetails: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   itemPrice: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -396,33 +388,33 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   summaryValue: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
     paddingTop: Spacing.sm,
     marginTop: Spacing.sm,
   },
   totalLabel: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   totalValue: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   pickupTime: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary + '10',
+    backgroundColor: Colors.primary + '10',
     padding: Spacing.md,
     borderRadius: 12,
     marginBottom: Spacing.lg,
@@ -430,23 +422,23 @@ const styles = StyleSheet.create({
   pickupTimeText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
     marginLeft: Spacing.sm,
   },
   footer: {
     padding: Spacing.lg,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
   },
   placeOrderButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
   },
   placeOrderText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -456,7 +448,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   customizationTag: {
-    backgroundColor: Colors.light.primary + '10',
+    backgroundColor: Colors.primary + '10',
     borderRadius: 12,
     padding: Spacing.xs,
     marginRight: Spacing.sm,
@@ -464,7 +456,7 @@ const styles = StyleSheet.create({
   customizationText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   instructionRow: {
     flexDirection: 'row',
@@ -474,7 +466,7 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   extrasDisplay: {
     flexDirection: 'row',
@@ -482,7 +474,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   extraDisplay: {
-    backgroundColor: Colors.light.primary + '10',
+    backgroundColor: Colors.primary + '10',
     borderRadius: 12,
     padding: Spacing.xs,
     marginRight: Spacing.sm,
@@ -490,11 +482,11 @@ const styles = StyleSheet.create({
   extraDisplayText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   extraDisplayPrice: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
 });

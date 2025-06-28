@@ -45,14 +45,14 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.border.light,
+    backgroundColor: Colors.border.light,
     marginHorizontal: 4,
   },
   progressDotCompleted: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
   },
   progressDotCurrent: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -60,6 +60,6 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
 }); 

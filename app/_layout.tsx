@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -15,7 +15,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { CartProvider } from '@/contexts/CartContext';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LocationProvider } from '@/contexts/LocationContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,21 +43,30 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="auth" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="checkout" />
-            <Stack.Screen name="order-tracking" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <CartProvider>
+        <OnboardingProvider>
+          <LocationProvider>
+            <NotificationProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="auth" />
+                <Stack.Screen name="onboarding" />
+                <Stack.Screen name="checkout" />
+                <Stack.Screen name="order-tracking" />
+                <Stack.Screen name="restaurant/[id]" />
+                <Stack.Screen name="dish/[id]" />
+                <Stack.Screen name="country/[name]" />
+              </Stack>
+              <StatusBar style="dark" />
+            </NotificationProvider>
+          </LocationProvider>
+        </OnboardingProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }

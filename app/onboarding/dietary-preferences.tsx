@@ -75,7 +75,7 @@ export default function DietaryPreferencesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -89,7 +89,7 @@ export default function DietaryPreferencesScreen() {
             Tell Us About Your Dietary Needs
           </Text>
           <Text style={styles.subtitle}>
-            We'll show you dishes that match your lifestyle
+            Help us recommend dishes that match your dietary needs and preferences
           </Text>
         </View>
 
@@ -135,7 +135,7 @@ export default function DietaryPreferencesScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>Continue</Text>
-          <ArrowRight color={Colors.light.text.inverse} size={20} />
+          <ArrowRight color={Colors.text.inverse} size={20} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -145,7 +145,7 @@ export default function DietaryPreferencesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: Spacing.sm,
     lineHeight: 40,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     paddingHorizontal: Spacing.md,
@@ -192,16 +192,16 @@ const styles = StyleSheet.create({
   noteText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   actionSection: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xl,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
     gap: Spacing.md,
   },
   skipButton: {
@@ -211,29 +211,29 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   nextButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   nextButtonDisabled: {
-    backgroundColor: Colors.light.border.medium,
+    backgroundColor: Colors.border.medium,
     shadowOpacity: 0,
     elevation: 0,
   },
   nextButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
     marginRight: Spacing.sm,

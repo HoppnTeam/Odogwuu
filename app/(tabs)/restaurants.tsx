@@ -1,127 +1,175 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Search, MapPin, Clock, Star } from 'lucide-react-native';
+import { MapPin, Clock, Star } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { mockRestaurants } from '@/data/mockData';
+import { useLocation } from '@/contexts/LocationContext';
+import { restaurantService, NearbyRestaurant } from '@/lib/restaurant-service';
+import { locationService } from '@/lib/location-service';
 
 export default function RestaurantsScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCuisine, setSelectedCuisine] = useState('All');
+  const [restaurants, setRestaurants] = useState<NearbyRestaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filterCuisine, setFilterCuisine] = useState<string | null>(null);
 
-  const cuisineTypes = ['All', 'West African', 'East African', 'North African', 'South African'];
-  
-  const filteredRestaurants = mockRestaurants.filter(restaurant => {
-    const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         restaurant.cuisine_type.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCuisine = selectedCuisine === 'All' || restaurant.cuisine_type === selectedCuisine;
-    return matchesSearch && matchesCuisine;
-  });
+  const { 
+    userLocation, 
+    hasLocationPermission, 
+    requestLocationPermission
+  } = useLocation();
+
+  useEffect(() => {
+    loadRestaurants();
+  }, [userLocation]);
+
+  const loadRestaurants = async () => {
+    try {
+      setIsLoading(true);
+      
+      if (userLocation) {
+        const nearbyRestaurants = await restaurantService.getNearbyRestaurants(userLocation);
+        setRestaurants(nearbyRestaurants);
+      } else {
+        // If no location, show all restaurants
+        const allRestaurants = await restaurantService.getAllRestaurants();
+        setRestaurants(allRestaurants.map(r => ({ ...r, distance: undefined, travelTime: undefined })));
+      }
+    } catch (error) {
+      console.error('Error loading restaurants:', error);
+      Alert.alert('Error', 'Failed to load restaurants');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLocationPermission = async () => {
+    const granted = await requestLocationPermission();
+    if (granted) {
+      loadRestaurants();
+    }
+  };
+
+  const handleRestaurantPress = (restaurant: NearbyRestaurant) => {
+    router.push(`/restaurant/${restaurant.id}`);
+  };
+
+  const formatDistance = (distance?: number) => {
+    if (!distance) return '';
+    return locationService.formatDistance(distance);
+  };
+
+  const getFilteredRestaurants = () => {
+    if (!filterCuisine) return restaurants;
+    return restaurants.filter(r => r.cuisine_type === filterCuisine);
+  };
+
+  const renderRestaurantCard = ({ item }: { item: NearbyRestaurant }) => (
+    <TouchableOpacity
+      style={styles.restaurantCard}
+      onPress={() => handleRestaurantPress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.restaurantHeader}>
+        <View style={styles.restaurantInfo}>
+          <Text style={styles.restaurantName}>{item.name}</Text>
+          <Text style={styles.cuisineType}>{item.cuisine_type}</Text>
+          
+          <View style={styles.ratingContainer}>
+            <Star size={16} color={Colors.warning} fill={Colors.warning} />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+            <Text style={styles.reviewCount}>(reviews)</Text>
+          </View>
+        </View>
+        
+        <View style={styles.statusContainer}>
+          <Text style={[
+            styles.statusText,
+            { color: item.is_open ? Colors.success : Colors.error }
+          ]}>
+            {item.is_open ? '🟢 Open' : '🔴 Closed'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.restaurantDetails}>
+        <View style={styles.detailRow}>
+          <MapPin size={16} color={Colors.text.secondary} />
+          <Text style={styles.detailText}>
+            {item.address}
+            {item.distance && ` • ${formatDistance(item.distance)} away`}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Clock size={16} color={Colors.text.secondary} />
+          <Text style={styles.detailText}>
+            Ready in {item.pickup_time}
+            {item.travelTime && ` • ${item.travelTime} travel`}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.headerTop}>
+        <Text style={styles.title}>Restaurants</Text>
+        {/* Temporarily disabled for testing - requires Mapbox token
+        <TouchableOpacity onPress={() => setShowMap(true)} style={styles.mapButton}>
+          <Map size={20} color={Colors.primary} />
+        </TouchableOpacity>
+        */}
+      </View>
+      
+      {!hasLocationPermission && (
+        <TouchableOpacity onPress={handleLocationPermission} style={styles.permissionPrompt}>
+          <Text style={styles.permissionText}>
+            📍 Enable location to find restaurants near you
+          </Text>
+        </TouchableOpacity>
+      )}
+      
+      {hasLocationPermission && userLocation && (
+        <Text style={styles.locationText}>
+          📍 Showing restaurants near you
+        </Text>
+      )}
+    </View>
+  );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading restaurants...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>African Restaurants</Text>
-          <Text style={styles.subtitle}>Discover authentic cuisine for pickup</Text>
-        </View>
+      <FlatList
+        data={getFilteredRestaurants()}
+        renderItem={renderRestaurantCard}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Search color={Colors.light.text.secondary} size={20} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search restaurants or cuisine..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor={Colors.light.text.secondary}
-          />
-        </View>
-
-        {/* Cuisine Filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-          {cuisineTypes.map((cuisine) => (
-            <TouchableOpacity
-              key={cuisine}
-              style={[
-                styles.filterChip,
-                selectedCuisine === cuisine && styles.filterChipActive
-              ]}
-              onPress={() => setSelectedCuisine(cuisine)}
-              activeOpacity={0.8}
-            >
-              <Text style={[
-                styles.filterChipText,
-                selectedCuisine === cuisine && styles.filterChipTextActive
-              ]}>
-                {cuisine}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Map Placeholder */}
-        <TouchableOpacity style={styles.mapPlaceholder} activeOpacity={0.8}>
-          <MapPin color={Colors.light.primary} size={24} />
-          <Text style={styles.mapText}>View on Map</Text>
-          <Text style={styles.mapSubtext}>See restaurant locations</Text>
-        </TouchableOpacity>
-
-        {/* Restaurant List */}
-        <View style={styles.restaurantList}>
-          <Text style={styles.listTitle}>
-            {filteredRestaurants.length} restaurant{filteredRestaurants.length !== 1 ? 's' : ''} found
-          </Text>
-          
-          {filteredRestaurants.map((restaurant) => (
-            <TouchableOpacity
-              key={restaurant.id}
-              style={styles.restaurantCard}
-              onPress={() => router.push(`/restaurant/${restaurant.id}`)}
-              activeOpacity={0.8}
-            >
-              <Image source={{ uri: restaurant.image_url }} style={styles.restaurantImage} />
-              
-              <View style={styles.restaurantContent}>
-                <View style={styles.restaurantHeader}>
-                  <Text style={styles.restaurantName}>{restaurant.name}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Star color={Colors.light.accent} size={16} fill={Colors.light.accent} />
-                    <Text style={styles.rating}>{restaurant.rating}</Text>
-                  </View>
-                </View>
-                
-                <Text style={styles.cuisineType}>{restaurant.cuisine_type}</Text>
-                <Text style={styles.restaurantDescription} numberOfLines={2}>
-                  {restaurant.description}
-                </Text>
-                
-                <View style={styles.restaurantFooter}>
-                  <View style={styles.pickupInfo}>
-                    <Clock color={Colors.light.text.secondary} size={14} />
-                    <Text style={styles.pickupTime}>Ready in {restaurant.pickup_time}</Text>
-                  </View>
-                  
-                  <View style={[
-                    styles.statusBadge,
-                    restaurant.is_open ? styles.statusOpen : styles.statusClosed
-                  ]}>
-                    <Text style={[
-                      styles.statusText,
-                      restaurant.is_open ? styles.statusTextOpen : styles.statusTextClosed
-                    ]}>
-                      {restaurant.is_open ? 'Open' : 'Closed'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      {/* Map Modal - Temporarily disabled for testing - requires Mapbox token
+      <Modal
+        visible={showMap}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <RestaurantMap onClose={() => setShowMap(false)} />
+      </Modal>
+      */}
     </SafeAreaView>
   );
 }
@@ -129,123 +177,63 @@ export default function RestaurantsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     padding: Spacing.lg,
     paddingTop: Spacing.md,
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
   },
-  subtitle: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+  mapButton: {
+    padding: Spacing.xs,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.light.background.secondary,
+  permissionPrompt: {
+    padding: Spacing.md,
+    backgroundColor: Colors.primary + '10',
     borderRadius: 12,
-    marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.md,
   },
-  searchIcon: {
-    marginRight: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
-  },
-  filterScroll: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  filterChip: {
-    backgroundColor: Colors.light.background.secondary,
-    borderRadius: 20,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    marginRight: Spacing.sm,
-    shadowColor: Colors.light.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  filterChipActive: {
-    backgroundColor: Colors.light.primary,
-    shadowColor: Colors.light.primary,
-    shadowOpacity: 0.3,
-  },
-  filterChipText: {
+  permissionText: {
     fontSize: FontSize.sm,
-    fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.text.secondary,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.primary,
   },
-  filterChipTextActive: {
-    color: Colors.light.text.inverse,
-  },
-  mapPlaceholder: {
-    backgroundColor: Colors.light.background.secondary,
-    borderRadius: 12,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    alignItems: 'center',
-    shadowColor: Colors.light.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  mapText: {
-    fontSize: FontSize.lg,
-    fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+  locationText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.success,
     marginTop: Spacing.sm,
   },
-  mapSubtext: {
-    fontSize: FontSize.sm,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
-    marginTop: Spacing.xs,
-  },
-  restaurantList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
-  },
-  listTitle: {
-    fontSize: FontSize.lg,
-    fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
-    marginBottom: Spacing.md,
+    color: Colors.text.secondary,
   },
   restaurantCard: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.primary,
     borderRadius: 16,
-    marginBottom: Spacing.md,
-    overflow: 'hidden',
-    shadowColor: Colors.light.black,
+    marginBottom: Spacing.lg,
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 4,
-  },
-  restaurantImage: {
-    width: '100%',
-    height: 160,
-  },
-  restaurantContent: {
-    padding: Spacing.lg,
+    overflow: 'hidden',
   },
   restaurantHeader: {
     flexDirection: 'row',
@@ -253,70 +241,62 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: Spacing.sm,
   },
-  restaurantName: {
-    fontSize: FontSize.lg,
-    fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+  restaurantInfo: {
     flex: 1,
+  },
+  restaurantName: {
+    flex: 1,
+    fontSize: FontSize.xl,
+    fontFamily: 'Montserrat-Bold',
+    color: Colors.text.primary,
     marginRight: Spacing.sm,
+  },
+  cuisineType: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.primary,
+    marginBottom: Spacing.sm,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  rating: {
+  ratingText: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginLeft: Spacing.xs,
   },
-  cuisineType: {
-    fontSize: FontSize.sm,
-    fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
-    marginBottom: Spacing.sm,
-  },
-  restaurantDescription: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
-    marginBottom: Spacing.md,
-    lineHeight: 20,
-  },
-  restaurantFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pickupInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pickupTime: {
+  reviewCount: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginLeft: Spacing.xs,
   },
-  statusBadge: {
+  statusContainer: {
+    padding: Spacing.sm,
+    backgroundColor: Colors.background.secondary,
     borderRadius: 12,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-  },
-  statusOpen: {
-    backgroundColor: Colors.light.success,
-  },
-  statusClosed: {
-    backgroundColor: Colors.light.error,
   },
   statusText: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.xs,
     fontFamily: 'OpenSans-SemiBold',
   },
-  statusTextOpen: {
-    color: Colors.light.white,
+  restaurantDetails: {
+    padding: Spacing.lg,
   },
-  statusTextClosed: {
-    color: Colors.light.white,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  detailText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+    marginLeft: Spacing.xs,
+  },
+  listContainer: {
+    padding: Spacing.lg,
   },
 }); 

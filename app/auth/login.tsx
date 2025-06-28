@@ -53,15 +53,15 @@ export default function LoginScreen() {
           onPress={handleBackPress}
           activeOpacity={0.7}
         >
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue your culinary journey</Text>
+        <Text style={styles.subtitle}>Sign in to continue your African culinary journey</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <Mail color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <Mail color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -69,19 +69,19 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Lock color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <Lock color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
@@ -101,7 +101,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
           <TouchableOpacity onPress={handleGoToRegister} activeOpacity={0.7}>
             <Text style={styles.footerLink}>Sign Up</Text>
           </TouchableOpacity>
@@ -114,7 +114,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -127,13 +127,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   form: {
     flex: 1,
@@ -144,11 +144,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.light.border.light,
+    borderColor: Colors.border.light,
     borderRadius: 12,
     marginBottom: Spacing.md,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
   },
   inputIcon: {
     marginRight: Spacing.sm,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   forgotPassword: {
     alignItems: 'flex-end',
@@ -167,15 +167,15 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   loginButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   loginButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -196,11 +196,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   footerLink: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
 });

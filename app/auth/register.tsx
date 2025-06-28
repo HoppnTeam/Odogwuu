@@ -65,7 +65,7 @@ export default function RegisterScreen() {
           onPress={handleBackPress}
           activeOpacity={0.7}
         >
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Join Hoppn</Text>
         <Text style={styles.subtitle}>Create your account to start exploring African cuisine</Text>
@@ -73,18 +73,18 @@ export default function RegisterScreen() {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <User color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <User color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Full Name"
             value={fullName}
             onChangeText={setFullName}
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Mail color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <Mail color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -92,31 +92,31 @@ export default function RegisterScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Lock color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <Lock color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Lock color={Colors.light.text.secondary} size={20} style={styles.inputIcon} />
+          <Lock color={Colors.text.secondary} size={20} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
-            placeholderTextColor={Colors.light.text.secondary}
+            placeholderTextColor={Colors.text.secondary}
           />
         </View>
 
@@ -145,7 +145,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     padding: Spacing.lg,
@@ -158,13 +158,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   form: {
     flex: 1,
@@ -175,11 +175,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.light.border.light,
+    borderColor: Colors.border.light,
     borderRadius: 12,
     marginBottom: Spacing.md,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
   },
   inputIcon: {
     marginRight: Spacing.sm,
@@ -189,16 +189,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   registerButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: Spacing.xl,
     marginTop: Spacing.lg,
-    shadowColor: Colors.light.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   registerButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -219,11 +219,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   footerLink: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
 });

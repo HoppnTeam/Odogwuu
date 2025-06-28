@@ -42,7 +42,7 @@ export default function OrderTrackingScreen() {
           style={styles.backButton}
           onPress={() => router.replace('/(tabs)')}
         >
-          <ArrowLeft color={Colors.light.text.primary} size={24} />
+          <ArrowLeft color={Colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Track Order</Text>
       </View>
@@ -73,7 +73,7 @@ export default function OrderTrackingScreen() {
                     isCurrent && styles.statusIconCurrent
                   ]}>
                     <IconComponent 
-                      color={isCompleted ? Colors.light.text.inverse : Colors.light.text.secondary} 
+                      color={isCompleted ? Colors.text.inverse : Colors.text.secondary} 
                       size={20} 
                     />
                   </View>
@@ -113,7 +113,7 @@ export default function OrderTrackingScreen() {
         <View style={styles.pickupSection}>
           <Text style={styles.sectionTitle}>Pickup Location</Text>
           <View style={styles.locationCard}>
-            <MapPin color={Colors.light.primary} size={20} />
+            <MapPin color={Colors.primary} size={20} />
             <View style={styles.locationContent}>
               <Text style={styles.locationTitle}>Mama Africa Kitchen</Text>
               <Text style={styles.locationText}>1234 University Ave, Minneapolis, MN 55401</Text>
@@ -134,28 +134,28 @@ export default function OrderTrackingScreen() {
               {/* Customization Display */}
               <View style={styles.customizationDisplay}>
                 <View style={styles.customizationTag}>
-                  <Flame color={Colors.light.primary} size={12} />
+                  <Flame color={Colors.primary} size={12} />
                   <Text style={styles.customizationText}>Medium Spice</Text>
                 </View>
                 <View style={styles.customizationTag}>
-                  <AlertTriangle color={Colors.light.warning} size={12} />
+                  <AlertTriangle color={Colors.warning} size={12} />
                   <Text style={styles.customizationText}>2 allergens avoided</Text>
                 </View>
                 <View style={styles.customizationTag}>
-                  <Package color={Colors.light.primary} size={12} />
+                  <Package color={Colors.primary} size={12} />
                   <Text style={styles.customizationText}>1 extra</Text>
                 </View>
               </View>
 
               {/* Special Instructions */}
               <View style={styles.instructionRow}>
-                <MessageSquare color={Colors.light.secondary} size={12} />
+                <MessageSquare color={Colors.secondary} size={12} />
                 <Text style={styles.instructionText}>Extra spicy, please make it very hot</Text>
               </View>
 
               {/* Preparation Notes */}
               <View style={styles.instructionRow}>
-                <ChefHat color={Colors.light.secondary} size={12} />
+                <ChefHat color={Colors.secondary} size={12} />
                 <Text style={styles.instructionText}>Cook rice until slightly crispy</Text>
               </View>
 
@@ -178,14 +178,14 @@ export default function OrderTrackingScreen() {
               {/* Customization Display */}
               <View style={styles.customizationDisplay}>
                 <View style={styles.customizationTag}>
-                  <Flame color={Colors.light.primary} size={12} />
+                  <Flame color={Colors.primary} size={12} />
                   <Text style={styles.customizationText}>Hot Spice</Text>
                 </View>
               </View>
 
               {/* Special Instructions */}
               <View style={styles.instructionRow}>
-                <MessageSquare color={Colors.light.secondary} size={12} />
+                <MessageSquare color={Colors.secondary} size={12} />
                 <Text style={styles.instructionText}>Extra peanut coating</Text>
               </View>
             </View>
@@ -203,7 +203,7 @@ export default function OrderTrackingScreen() {
           <View style={styles.pickupInstructions}>
             <Text style={styles.sectionTitle}>Pickup Instructions</Text>
             <View style={styles.instructionCard}>
-              <Bell color={Colors.light.primary} size={20} />
+              <Bell color={Colors.primary} size={20} />
               <View style={styles.instructionContent}>
                 <Text style={styles.instructionTitle}>Your order is ready!</Text>
                 <Text style={styles.instructionText}>
@@ -239,7 +239,7 @@ export default function OrderTrackingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   backButton: {
     marginRight: Spacing.md,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   content: {
     flex: 1,
@@ -263,26 +263,26 @@ const styles = StyleSheet.create({
   orderInfo: {
     padding: Spacing.lg,
     alignItems: 'center',
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     margin: Spacing.lg,
     borderRadius: 12,
   },
   orderNumber: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   restaurantName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginBottom: Spacing.sm,
   },
   estimatedTime: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   timeline: {
     paddingHorizontal: Spacing.lg,
@@ -300,24 +300,24 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.border.light,
+    backgroundColor: Colors.border.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
   statusIconCompleted: {
-    backgroundColor: Colors.light.success,
+    backgroundColor: Colors.success,
   },
   statusIconCurrent: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
   },
   timelineLine: {
     width: 2,
     height: 40,
-    backgroundColor: Colors.light.border.light,
+    backgroundColor: Colors.border.light,
     marginTop: Spacing.xs,
   },
   timelineLineCompleted: {
-    backgroundColor: Colors.light.success,
+    backgroundColor: Colors.success,
   },
   timelineContent: {
     flex: 1,
@@ -326,19 +326,19 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginBottom: Spacing.xs,
   },
   statusLabelCompleted: {
-    color: Colors.light.success,
+    color: Colors.success,
   },
   statusLabelCurrent: {
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   statusTime: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   pickupSection: {
     marginBottom: Spacing.xl,
@@ -346,13 +346,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.md,
   },
   locationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     padding: Spacing.md,
     borderRadius: 12,
   },
@@ -363,19 +363,19 @@ const styles = StyleSheet.create({
   locationTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   locationText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginBottom: Spacing.xs,
   },
   locationHours: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-SemiBold',
-    color: Colors.light.success,
+    color: Colors.success,
   },
   orderItems: {
     marginBottom: Spacing.xl,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border.light,
+    borderBottomColor: Colors.border.light,
   },
   itemInfo: {
     flex: 1,
@@ -394,18 +394,18 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
   itemDetails: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
   },
   itemPrice: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   totalRow: {
     flexDirection: 'row',
@@ -413,17 +413,17 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     marginTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
   },
   totalLabel: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   totalValue: {
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-Bold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
   pickupInstructions: {
     marginBottom: Spacing.xl,
@@ -431,11 +431,11 @@ const styles = StyleSheet.create({
   instructionCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: Colors.light.success + '10',
+    backgroundColor: Colors.success + '10',
     padding: Spacing.md,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.light.success + '30',
+    borderColor: Colors.success + '30',
   },
   instructionContent: {
     marginLeft: Spacing.md,
@@ -444,41 +444,41 @@ const styles = StyleSheet.create({
   instructionTitle: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.success,
+    color: Colors.success,
     marginBottom: Spacing.xs,
   },
   instructionText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.secondary,
+    color: Colors.text.secondary,
     marginLeft: Spacing.xs,
     flex: 1,
   },
   footer: {
     padding: Spacing.lg,
-    backgroundColor: Colors.light.background.primary,
+    backgroundColor: Colors.background.primary,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border.light,
+    borderTopColor: Colors.border.light,
   },
   supportButton: {
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
   },
   supportButtonText: {
-    color: Colors.light.primary,
+    color: Colors.primary,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
   },
   primaryButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     borderRadius: 12,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: Colors.light.text.inverse,
+    color: Colors.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   customizationTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     padding: Spacing.xs,
     borderRadius: 4,
     marginRight: Spacing.xs,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   customizationText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   instructionRow: {
     flexDirection: 'row',
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   extraDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background.secondary,
+    backgroundColor: Colors.background.secondary,
     padding: Spacing.xs,
     borderRadius: 4,
     marginRight: Spacing.xs,
@@ -521,11 +521,11 @@ const styles = StyleSheet.create({
   extraDisplayText: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.light.text.primary,
+    color: Colors.text.primary,
   },
   extraDisplayPrice: {
     fontSize: FontSize.sm,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
 });

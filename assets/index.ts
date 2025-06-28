@@ -43,10 +43,7 @@ export const CountryFlags = {
 
 // Onboarding Assets
 export const Onboarding = {
-  welcome: require('./images/onboarding/welcome-screen.png'),
-  discoverFlavors: require('./images/onboarding/discover-flavors.png'),
   supportRestaurants: require('./images/onboarding/support-restaurants.png'),
-  culturalKnowledge: require('./images/onboarding/cultural-knowledge.png'),
 };
 
 // Splash Screen Assets

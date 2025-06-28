@@ -22,7 +22,14 @@ export const userService = {
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If user doesn't exist in the users table, return null instead of throwing
+        if (error.code === 'PGRST116') {
+          console.log('User profile not found in database, creating default profile...');
+          return null;
+        }
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error getting current user:', error);
