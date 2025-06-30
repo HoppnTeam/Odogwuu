@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -8,8 +8,13 @@ import { Spacing, FontSize } from '@/constants/Spacing';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export default function OnboardingScreen() {
-  const { currentStep, updateOnboardingData } = useOnboarding();
+  const { currentStep, updateOnboardingData, setCurrentStep } = useOnboarding();
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+
+  // Set the current step to 1 (this is step 1 of 5)
+  useEffect(() => {
+    setCurrentStep(1);
+  }, [setCurrentStep]);
 
   const handlePreferenceToggle = (preference: string) => {
     setSelectedPreferences(prev => 
@@ -25,8 +30,6 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Progress indicator removed - component was deleted */}
-      
       <View style={styles.content}>
         <Text style={styles.title}>What brings you to Hoppn?</Text>
         <Text style={styles.subtitle}>Help us personalize your African cuisine journey</Text>

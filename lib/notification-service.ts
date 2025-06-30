@@ -104,28 +104,31 @@ export class NotificationService {
     orderId: string, 
     status: OrderStatus, 
     restaurantName: string,
-    estimatedTime?: number
+    estimatedTime?: number,
+    hpOrderId?: string
   ) {
+    const orderDisplayId = hpOrderId || `Order #${orderId.slice(-8)}`;
+    
     const messages = {
       confirmed: {
         title: "Order Confirmed! 🎉",
-        body: `Your order from ${restaurantName} is confirmed! Pickup in ${estimatedTime || 25} minutes.`
+        body: `Your order ${orderDisplayId} from ${restaurantName} is confirmed! Pickup in ${estimatedTime || 25} minutes.`
       },
       preparing: {
         title: "Kitchen is Cooking! 👨‍🍳",
-        body: `Your authentic African dishes are being prepared with love at ${restaurantName}`
+        body: `Your authentic African dishes for ${orderDisplayId} are being prepared with love at ${restaurantName}`
       },
       ready: {
         title: "Order Ready for Pickup! 🍽️",
-        body: `Your delicious order is ready at ${restaurantName}. Bon appétit!`
+        body: `Your delicious order ${orderDisplayId} is ready at ${restaurantName}. Bon appétit!`
       },
       reminder: {
         title: "Pickup Reminder ⏰",
-        body: `Don't forget - your order at ${restaurantName} expires in 15 minutes`
+        body: `Don't forget - your order ${orderDisplayId} at ${restaurantName} expires in 15 minutes`
       },
       complete: {
         title: "Thanks for choosing Hoppn! 🌍",
-        body: `Rate your experience with ${restaurantName} and help others discover authentic African cuisine`
+        body: `Rate your experience with ${restaurantName} for order ${orderDisplayId} and help others discover authentic African cuisine`
       }
     };
     
@@ -136,7 +139,8 @@ export class NotificationService {
         type: 'order_status', 
         orderId, 
         restaurantName,
-        estimatedTime 
+        estimatedTime,
+        hpOrderId
       }
     );
   }

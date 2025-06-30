@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,6 @@ import { router } from 'expo-router';
 import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { PreferenceCard } from '@/components/onboarding/PreferenceCard';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { DietaryPreference } from '@/types';
@@ -29,8 +28,13 @@ const dietaryOptions = [
 ];
 
 export default function DietaryPreferencesScreen() {
-  const { onboardingData, updateOnboardingData, currentStep } = useOnboarding();
+  const { onboardingData, updateOnboardingData, currentStep, setCurrentStep } = useOnboarding();
   const [selectedPreferences, setSelectedPreferences] = useState<DietaryPreference[]>([]);
+
+  // Set the current step to 2 (dietary-preferences is step 2 of 5)
+  useEffect(() => {
+    setCurrentStep(2);
+  }, [setCurrentStep]);
 
   const handlePreferenceToggle = (preference: DietaryPreference) => {
     if (preference === 'no-restrictions') {
@@ -66,12 +70,6 @@ export default function DietaryPreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Progress Indicator */}
-      <OnboardingProgress 
-        currentStep={currentStep} 
-        totalSteps={5} 
-      />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>

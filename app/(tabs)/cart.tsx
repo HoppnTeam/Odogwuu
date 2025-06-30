@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -21,6 +21,7 @@ import { Spacing, FontSize } from '@/constants/Spacing';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CartItem, CartExtra, AllergenInfo, SpiceLevelInfo } from '@/types';
+import { orderService } from '@/lib/order-service';
 
 // Constants for customization options
 const spiceLevels = [
@@ -287,6 +288,28 @@ export default function CartScreen() {
   const { items, total } = state;
   const [customizationModalVisible, setCustomizationModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const [activeOrder, setActiveOrder] = useState<any>(null);
+  const [checkingOrder, setCheckingOrder] = useState(true);
+  const [cartError, setCartError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkOrder = async () => {
+      setCheckingOrder(true);
+      const order = await orderService.getActiveOrder();
+      setActiveOrder(order);
+      setCheckingOrder(false);
+      if (order) {
+        setCartError('You already have an active order. Please complete or cancel it before starting a new one.');
+      } else {
+        setCartError(null);
+      }
+    };
+    checkOrder();
+  }, []);
+
+  // Check for multi-restaurant cart (should not happen)
+  const uniqueRestaurants = Array.from(new Set(items.map(i => i.restaurant_id)));
+  const multiRestaurant = uniqueRestaurants.length > 1;
 
   const tax = total * 0.08;
   const finalTotal = total + tax;
@@ -472,11 +495,20 @@ export default function CartScreen() {
         </View>
         
         <TouchableOpacity
-          style={styles.checkoutButton}
-          onPress={() => router.push('/checkout')}
+          style={[styles.checkoutButton, (checkingOrder || !!activeOrder || multiRestaurant) && { opacity: 0.5 }]}
+          onPress={() => {
+            if (!checkingOrder && !activeOrder && !multiRestaurant) router.push('/checkout');
+          }}
+          disabled={checkingOrder || !!activeOrder || multiRestaurant}
         >
           <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
         </TouchableOpacity>
+        {cartError && (
+          <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>{cartError}</Text>
+        )}
+        {multiRestaurant && (
+          <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>You can only order from one restaurant at a time. Please clear your cart.</Text>
+        )}
       </View>
 
       {/* Customization Modal */}

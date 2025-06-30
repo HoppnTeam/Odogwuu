@@ -83,7 +83,7 @@ export default function CountryDishesScreen() {
                 <View style={styles.dishContent}>
                   <View style={styles.dishHeader}>
                     <Text style={styles.dishName}>{dish.name}</Text>
-                    <Text style={styles.dishPrice}>${dish.base_price.toFixed(2)}</Text>
+                    <Text style={styles.dishPrice}>${typeof dish.base_price === 'number' ? dish.base_price.toFixed(2) : 'N/A'}</Text>
                   </View>
                   
                   <Text style={styles.dishDescription} numberOfLines={2}>

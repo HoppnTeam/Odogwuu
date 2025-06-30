@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.dishes CASCADE;
 DROP TABLE IF EXISTS public.restaurants CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
+DROP TABLE IF EXISTS public.order_id_counters CASCADE;
 
 -- Drop custom types
 DROP TYPE IF EXISTS order_status CASCADE;
@@ -94,6 +95,7 @@ CREATE TABLE public.orders (
     estimated_pickup_time TIMESTAMP WITH TIME ZONE,
     actual_pickup_time TIMESTAMP WITH TIME ZONE,
     special_instructions TEXT,
+    hp_order_id VARCHAR(15) UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -121,6 +123,15 @@ CREATE TABLE public.reviews (
     )
 );
 
+-- Order ID Counters table for HP order ID generation
+CREATE TABLE IF NOT EXISTS public.order_id_counters (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    year VARCHAR(2) NOT NULL UNIQUE, -- Last 2 digits of year (e.g., '25' for 2025)
+    current_number INTEGER NOT NULL DEFAULT 1, -- Current sequential number
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON public.users(email);
 CREATE INDEX idx_restaurants_cuisine_type ON public.restaurants(cuisine_type);
@@ -137,6 +148,7 @@ CREATE INDEX idx_orders_created_at ON public.orders(created_at DESC);
 CREATE INDEX idx_reviews_user_id ON public.reviews(user_id);
 CREATE INDEX idx_reviews_dish_id ON public.reviews(dish_id);
 CREATE INDEX idx_reviews_restaurant_id ON public.reviews(restaurant_id);
+CREATE INDEX idx_orders_hp_order_id ON public.orders(hp_order_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -162,6 +174,7 @@ ALTER TABLE public.restaurants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dishes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_id_counters ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can view their own profile" ON public.users
@@ -206,6 +219,10 @@ CREATE POLICY "Users can create reviews for their orders" ON public.reviews
 
 CREATE POLICY "Users can update their own reviews" ON public.reviews
     FOR UPDATE USING (auth.uid() = user_id);
+
+-- Order ID Counters policies
+CREATE POLICY "Service role only" ON public.order_id_counters
+    FOR ALL USING (auth.role() = 'service_role');
 
 -- Insert sample data for testing
 INSERT INTO public.restaurants (
@@ -314,6 +331,26 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Insert initial counter for 2025 if it doesn't exist
+INSERT INTO public.order_id_counters (year, current_number)
+VALUES ('25', 1)
+ON CONFLICT (year) DO NOTHING;
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_order_id_counters_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update updated_at
+CREATE TRIGGER update_order_id_counters_updated_at
+    BEFORE UPDATE ON public.order_id_counters
+    FOR EACH ROW
+    EXECUTE FUNCTION update_order_id_counters_updated_at();
 
 -- Refresh the schema cache
 NOTIFY pgrst, 'reload schema'; 

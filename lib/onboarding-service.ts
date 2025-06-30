@@ -8,7 +8,28 @@ export const onboardingService = {
       // Convert onboarding data to database format
       const dietaryPreferences = onboardingData.dietaryPreferences?.map(pref => pref) || [];
       const spiceTolerance = onboardingData.spiceLevel || 3;
-      const explorationStyle = onboardingData.explorationStyle || 'balanced';
+      
+      // Map exploration style to database-compatible values
+      let explorationStyle = 'balanced'; // default
+      if (onboardingData.explorationStyle) {
+        switch (onboardingData.explorationStyle) {
+          case 'gentle-explorer':
+            explorationStyle = 'cautious';
+            break;
+          case 'cultural-curious':
+            explorationStyle = 'balanced';
+            break;
+          case 'bold-adventurer':
+            explorationStyle = 'adventurous';
+            break;
+          case 'specific-seeker':
+            explorationStyle = 'balanced';
+            break;
+          default:
+            explorationStyle = 'balanced';
+        }
+      }
+      
       const orderFrequency = onboardingData.orderFrequency || 'occasional';
 
       // 1. Update users table with core preferences
@@ -77,9 +98,26 @@ export const onboardingService = {
       const onboardingData: OnboardingData = {
         dietaryPreferences: data.dietary_preferences || [],
         spiceLevel: data.spice_tolerance || 3,
-        explorationStyle: data.exploration_style || 'balanced',
+        explorationStyle: data.exploration_style || 'cultural-curious',
         orderFrequency: data.order_frequency || 'occasional'
       };
+
+      // Map database exploration_style back to app values
+      if (data.exploration_style) {
+        switch (data.exploration_style) {
+          case 'cautious':
+            onboardingData.explorationStyle = 'gentle-explorer';
+            break;
+          case 'balanced':
+            onboardingData.explorationStyle = 'cultural-curious';
+            break;
+          case 'adventurous':
+            onboardingData.explorationStyle = 'bold-adventurer';
+            break;
+          default:
+            onboardingData.explorationStyle = 'cultural-curious';
+        }
+      }
 
       return { data: onboardingData };
     } catch (error: any) {
@@ -124,7 +162,25 @@ export const onboardingService = {
         updateData.spice_tolerance = partialData.spiceLevel;
       }
       if (partialData.explorationStyle) {
-        updateData.exploration_style = partialData.explorationStyle;
+        // Map exploration style to database-compatible values
+        let explorationStyle = 'balanced'; // default
+        switch (partialData.explorationStyle) {
+          case 'gentle-explorer':
+            explorationStyle = 'cautious';
+            break;
+          case 'cultural-curious':
+            explorationStyle = 'balanced';
+            break;
+          case 'bold-adventurer':
+            explorationStyle = 'adventurous';
+            break;
+          case 'specific-seeker':
+            explorationStyle = 'balanced';
+            break;
+          default:
+            explorationStyle = 'balanced';
+        }
+        updateData.exploration_style = explorationStyle;
       }
       if (partialData.orderFrequency) {
         updateData.order_frequency = partialData.orderFrequency;

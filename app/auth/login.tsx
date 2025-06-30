@@ -1,206 +1,273 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
-import { Colors } from '@/constants/Colors';
-import { Spacing, FontSize } from '@/constants/Spacing';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator
+} from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { router } from 'expo-router';
+import { Colors } from '@/constants/Colors';
+import { SecurityService } from '@/lib/security-service';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
+      router.replace('/(tabs)');
+    }
+  }, [user]);
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+    
+    // Validate email
+    const emailValidation = SecurityService.validateEmail(email);
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || 'Invalid email');
+      isValid = false;
+    } else {
+      setEmailError('');
     }
     
-    setLoading(true);
+    // Validate password
+    const passwordValidation = SecurityService.validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setPasswordError(passwordValidation.error || 'Invalid password');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+    
+    return isValid;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    
     try {
-      const success = await signIn(email, password);
+      // Check rate limiting
+      const loginCheck = SecurityService.checkLoginAttempts(email);
+      if (!loginCheck.canAttempt) {
+        const remainingMinutes = Math.ceil((loginCheck.remainingTime || 0) / 60000);
+        Alert.alert(
+          'Too Many Attempts',
+          `Too many failed login attempts. Please try again in ${remainingMinutes} minutes.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      const result = await signIn(email, password);
       
-      if (success) {
-        // Navigate to home (user is already authenticated)
+      if (result.success) {
+        SecurityService.logSecurityEvent('LOGIN_SUCCESS', { email });
         router.replace('/(tabs)');
       } else {
-        Alert.alert('Error', 'Login failed. Please check your credentials.');
+        SecurityService.logSecurityEvent('LOGIN_FAILED', { email, error: result.error });
+        Alert.alert('Login Failed', result.error || 'Invalid email or password');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Login failed.');
+      SecurityService.logSecurityEvent('LOGIN_ERROR', { email, error: error.message });
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleBackPress = () => {
-    router.back();
-  };
-
-  const handleGoToRegister = () => {
-    router.push('/auth/register');
+  const handleForgotPassword = () => {
+    Alert.alert(
+      'Reset Password',
+      'Please contact support to reset your password.',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={handleBackPress}
-          activeOpacity={0.7}
-        >
-          <ArrowLeft color={Colors.text.primary} size={24} />
-        </TouchableOpacity>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
         <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue your African culinary journey</Text>
-      </View>
+        <Text style={styles.subtitle}>Sign in to your Hoppn account</Text>
 
-      <View style={styles.form}>
-        <View style={styles.inputContainer}>
-          <Mail color={Colors.text.secondary} size={20} style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor={Colors.text.secondary}
-          />
-        </View>
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={emailError ? [styles.input, styles.inputError] as any : styles.input}
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (emailError) setEmailError('');
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isLoading}
+            />
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+          </View>
 
-        <View style={styles.inputContainer}>
-          <Lock color={Colors.text.secondary} size={20} style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor={Colors.text.secondary}
-          />
-        </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={passwordError ? [styles.input, styles.inputError] as any : styles.input}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (passwordError) setPasswordError('');
+              }}
+              secureTextEntry
+              editable={!isLoading}
+            />
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+          </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.loginButtonText}>
-            {loading ? 'Signing In...' : 'Sign In'}
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity onPress={handleGoToRegister} activeOpacity={0.7}>
-            <Text style={styles.footerLink}>Sign Up</Text>
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            onPress={handleForgotPassword}
+            disabled={isLoading}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={isLoading ? [styles.loginButton, styles.loginButtonDisabled] as any : styles.loginButton}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.loginButtonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don't have an account? </Text>
+            <TouchableOpacity 
+              onPress={() => router.push('/auth/register')}
+              disabled={isLoading}
+            >
+              <Text style={styles.signupLink}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.background,
   },
-  header: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.xl,
-  },
-  backButton: {
-    marginBottom: Spacing.lg,
-    padding: Spacing.sm,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   title: {
-    fontSize: FontSize.xxxl,
-    fontFamily: 'Montserrat-Bold',
-    color: Colors.text.primary,
-    marginBottom: Spacing.sm,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 48,
   },
   form: {
-    flex: 1,
-    padding: Spacing.lg,
-    justifyContent: 'center',
+    width: '100%',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.light,
-    borderRadius: 12,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.background.secondary,
+    marginBottom: 20,
   },
-  inputIcon: {
-    marginRight: Spacing.sm,
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
   },
   input: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.text.primary,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  inputError: {
+    borderColor: '#ef4444',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    marginTop: 4,
   },
   forgotPassword: {
-    alignItems: 'flex-end',
-    marginBottom: Spacing.xl,
+    alignSelf: 'flex-end',
+    marginBottom: 24,
   },
   forgotPasswordText: {
-    fontSize: FontSize.sm,
-    fontFamily: 'OpenSans-SemiBold',
     color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   loginButton: {
     backgroundColor: Colors.primary,
-    paddingVertical: Spacing.md,
     borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: Spacing.xl,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 24,
   },
   loginButtonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
-    color: Colors.text.inverse,
-    fontSize: FontSize.lg,
-    fontFamily: 'Montserrat-SemiBold',
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  footer: {
+  signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  footerText: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+  signupText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
   },
-  footerLink: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-SemiBold',
+  signupLink: {
     color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

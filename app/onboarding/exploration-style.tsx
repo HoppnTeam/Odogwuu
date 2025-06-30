@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { ExplorationStyle } from '@/types';
+import { PreferenceCard } from '@/components/onboarding/PreferenceCard';
 
 const explorationOptions = [
   { 
@@ -42,10 +43,15 @@ const explorationOptions = [
 ];
 
 export default function ExplorationStyleScreen() {
-  const { onboardingData, updateOnboardingData, currentStep } = useOnboarding();
+  const { onboardingData, updateOnboardingData, currentStep, setCurrentStep } = useOnboarding();
   const [selectedStyle, setSelectedStyle] = useState<ExplorationStyle>(
     (onboardingData.explorationStyle as ExplorationStyle) || 'cultural-curious'
   );
+
+  // Set the current step to 4 (exploration-style is step 4 of 5)
+  useEffect(() => {
+    setCurrentStep(4);
+  }, [setCurrentStep]);
 
   const handleStyleSelect = (style: ExplorationStyle) => {
     setSelectedStyle(style);
@@ -67,12 +73,6 @@ export default function ExplorationStyleScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Progress Indicator */}
-      {/* <OnboardingProgress 
-        currentStep={currentStep} 
-        totalSteps={5} 
-      /> */}
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -96,8 +96,7 @@ export default function ExplorationStyleScreen() {
 
         {/* Options */}
         <View style={styles.optionsSection}>
-          {/* Temporarily commented out PreferenceCard components */}
-          {/* {explorationOptions.map((option) => (
+          {explorationOptions.map((option) => (
             <PreferenceCard
               key={option.id}
               icon={option.icon}
@@ -106,7 +105,7 @@ export default function ExplorationStyleScreen() {
               isSelected={selectedStyle === option.id}
               onPress={() => handleStyleSelect(option.id as ExplorationStyle)}
             />
-          ))} */}
+          ))}
         </View>
 
         {/* Explanation */}

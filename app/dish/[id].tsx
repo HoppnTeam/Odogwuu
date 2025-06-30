@@ -7,6 +7,7 @@ import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
 import { getDishById } from '@/data/mockData';
 import { useCart } from '@/contexts/CartContext';
+import { orderService } from '@/lib/order-service';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -39,7 +40,9 @@ export default function DishDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const { addItem } = useCart();
+  const { addItem, state } = useCart();
+  const [addError, setAddError] = useState<string | null>(null);
+  const [checkingOrder, setCheckingOrder] = useState(false);
   
   const dish = getDishById(id!);
   
@@ -51,8 +54,21 @@ export default function DishDetailScreen() {
     );
   }
 
-  const handleAddToCart = () => {
-    addItem(dish, quantity, specialInstructions);
+  const handleAddToCart = async () => {
+    setAddError(null);
+    // Block if cart contains items from a different restaurant
+    if (state.items.length > 0 && state.items[0].restaurant_id !== dish.restaurant_id) {
+      setAddError('You can only order from one restaurant at a time. Please clear your cart to add items from a different restaurant.');
+      return;
+    }
+    setCheckingOrder(true);
+    const activeOrder = await orderService.getActiveOrder();
+    setCheckingOrder(false);
+    if (activeOrder) {
+      setAddError('You already have an active order. Please complete or cancel it before starting a new one.');
+      return;
+    }
+    addItem(dish, quantity, { special_instructions: specialInstructions });
     router.back();
   };
 
@@ -224,11 +240,15 @@ export default function DishDetailScreen() {
         <TouchableOpacity
           style={styles.addToCartButton}
           onPress={handleAddToCart}
+          disabled={checkingOrder}
         >
           <ShoppingCart color={Colors.text.inverse} size={20} />
           <Text style={styles.addToCartText}>Add to Cart • ${totalPrice.toFixed(2)}</Text>
         </TouchableOpacity>
       </View>
+      {addError && (
+        <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>{addError}</Text>
+      )}
     </SafeAreaView>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -16,6 +16,9 @@ export default function CheckoutScreen() {
   const { items, total } = state;
   const [selectedPayment, setSelectedPayment] = useState('Card ending in 1234');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [activeOrder, setActiveOrder] = useState<any>(null);
+  const [checkingOrder, setCheckingOrder] = useState(true);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   
   const tax = total * 0.08;
   const finalTotal = total + tax;
@@ -34,12 +37,38 @@ export default function CheckoutScreen() {
     return item.total_price;
   };
 
+  useEffect(() => {
+    const checkOrder = async () => {
+      setCheckingOrder(true);
+      const order = await orderService.getActiveOrder();
+      setActiveOrder(order);
+      setCheckingOrder(false);
+      if (order) {
+        setCheckoutError('You already have an active order. Please complete or cancel it before starting a new one.');
+      } else {
+        setCheckoutError(null);
+      }
+    };
+    checkOrder();
+  }, []);
+
+  // Check for multi-restaurant cart (should not happen)
+  const uniqueRestaurants = Array.from(new Set(items.map(i => i.restaurant_id)));
+  const multiRestaurant = uniqueRestaurants.length > 1;
+
   const handlePlaceOrder = async () => {
     if (!user) {
       Alert.alert('Error', 'Please log in to place an order');
       return;
     }
-
+    if (activeOrder) {
+      setCheckoutError('You already have an active order. Please complete or cancel it before starting a new one.');
+      return;
+    }
+    if (multiRestaurant) {
+      setCheckoutError('You can only order from one restaurant at a time. Please clear your cart.');
+      return;
+    }
     try {
       // Create order object with all customization data
       const orderData = {
@@ -66,7 +95,17 @@ export default function CheckoutScreen() {
       if (savedOrder) {
         // Order saved successfully
         clearCart();
-        router.push(`/order-tracking?orderId=${savedOrder.id}`);
+        // Show success message with HP order ID
+        Alert.alert(
+          'Order Confirmed! 🎉',
+          `Your order ${savedOrder.hp_order_id} has been placed successfully. You'll receive updates on your order status.`,
+          [
+            {
+              text: 'Track Order',
+              onPress: () => router.push(`/order-tracking?orderId=${savedOrder.id}`)
+            }
+          ]
+        );
       } else {
         Alert.alert('Error', 'Failed to create order. Please try again.');
       }
@@ -239,13 +278,20 @@ export default function CheckoutScreen() {
       {/* Place Order Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.placeOrderButton}
+          style={[styles.placeOrderButton, (checkingOrder || !!activeOrder || multiRestaurant) && { opacity: 0.5 }]}
           onPress={handlePlaceOrder}
+          disabled={checkingOrder || !!activeOrder || multiRestaurant}
         >
           <Text style={styles.placeOrderText}>
             Place Order • ${finalTotal.toFixed(2)}
           </Text>
         </TouchableOpacity>
+        {checkoutError && (
+          <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>{checkoutError}</Text>
+        )}
+        {multiRestaurant && (
+          <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>You can only order from one restaurant at a time. Please clear your cart.</Text>
+        )}
       </View>
     </SafeAreaView>
   );

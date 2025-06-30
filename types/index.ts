@@ -159,6 +159,7 @@ export interface Order {
   estimated_pickup_time?: string;
   actual_pickup_time?: string;
   special_instructions?: string;
+  hp_order_id?: string; // HP order ID in format HP-YY-XXXXXXX
   created_at: string;
   updated_at: string;
 }

@@ -5,6 +5,9 @@ import { router } from 'expo-router';
 import { ArrowLeft, CircleCheck as CheckCircle, Clock, Bell, MapPin, Flame, AlertTriangle, Package, MessageSquare, ChefHat } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
+import { supabase } from '@/lib/supabase';
+import * as Notifications from 'expo-notifications';
+import { orderService } from '@/lib/order-service';
 
 const orderStatuses = [
   { id: 'confirmed', label: 'Order Confirmed', icon: CheckCircle, completed: true },
@@ -14,26 +17,181 @@ const orderStatuses = [
 ];
 
 export default function OrderTrackingScreen() {
+  // Replace with actual order ID logic (e.g., from navigation params or context)
+  const orderId = '12345';
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadOrder = async () => {
+      try {
+        setLoading(true);
+        const orderData = await orderService.getOrderById(orderId);
+        setOrder(orderData);
+      } catch (error) {
+        console.error('Error loading order:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOrder();
+  }, [orderId]);
+
   const [currentStatus, setCurrentStatus] = useState('preparing');
   const [estimatedTime, setEstimatedTime] = useState('10-15 minutes');
 
   useEffect(() => {
-    // Simulate order progress
-    const timer = setTimeout(() => {
-      if (currentStatus === 'preparing') {
-        setCurrentStatus('ready');
-        setEstimatedTime('Ready now!');
+    if (order) {
+      setCurrentStatus(order.status);
+      if (order.estimated_pickup_time) {
+        setEstimatedTime(order.estimated_pickup_time);
       }
-    }, 3000);
+    }
+  }, [order]);
 
-    return () => clearTimeout(timer);
-  }, [currentStatus]);
+  useEffect(() => {
+    // Subscribe to real-time updates for this order
+    const channel = supabase
+      .channel('order-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          const updatedOrder = payload.new;
+          if (updatedOrder.status && updatedOrder.status !== currentStatus) {
+            setCurrentStatus(updatedOrder.status);
+            // Trigger push notification with HP order ID
+            Notifications.scheduleNotificationAsync({
+              content: {
+                title: 'Order Update',
+                body: `Your order ${updatedOrder.hp_order_id || '#' + orderId} status is now: ${updatedOrder.status.replace('_', ' ')}`,
+              },
+              trigger: null,
+            });
+          }
+          if (updatedOrder.estimated_pickup_time) {
+            setEstimatedTime(updatedOrder.estimated_pickup_time);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          // Order was cancelled
+          setCurrentStatus('cancelled');
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Order Cancelled',
+              body: `Your order ${order?.hp_order_id || '#' + orderId} has been cancelled by the vendor.`,
+            },
+            trigger: null,
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          // New order created (optional: handle as needed)
+          console.log('Order created:', payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId, currentStatus]);
 
   const getCurrentStatusIndex = () => {
     return orderStatuses.findIndex(status => status.id === currentStatus);
   };
 
   const currentStatusIndex = getCurrentStatusIndex();
+
+  // UI: Only allow one active order per user (enforced elsewhere in the app)
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <ArrowLeft color={Colors.text.primary} size={24} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Track Order</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading order details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <ArrowLeft color={Colors.text.primary} size={24} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Track Order</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Order not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (currentStatus === 'cancelled') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <ArrowLeft color={Colors.text.primary} size={24} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Track Order</Text>
+        </View>
+        <View style={styles.cancelledCard}>
+          <Text style={styles.cancelledTitle}>Order Cancelled</Text>
+          <Text style={styles.cancelledMessage}>
+            Sorry, your order was cancelled by the restaurant. You have not been charged. Please contact support if you have questions.
+          </Text>
+          <TouchableOpacity
+            style={styles.cancelledButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <Text style={styles.cancelledButtonText}>Back to Home</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,8 +208,8 @@ export default function OrderTrackingScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Order Info */}
         <View style={styles.orderInfo}>
-          <Text style={styles.orderNumber}>Order #12345</Text>
-          <Text style={styles.restaurantName}>Mama Africa Kitchen</Text>
+          <Text style={styles.orderNumber}>{order.hp_order_id || 'Order #12345'}</Text>
+          <Text style={styles.restaurantName}>{order.restaurants?.name || 'Mama Africa Kitchen'}</Text>
           <Text style={styles.estimatedTime}>
             {currentStatus === 'ready' ? 'Ready for pickup!' : `Ready in: ${estimatedTime}`}
           </Text>
@@ -207,7 +365,7 @@ export default function OrderTrackingScreen() {
               <View style={styles.instructionContent}>
                 <Text style={styles.instructionTitle}>Your order is ready!</Text>
                 <Text style={styles.instructionText}>
-                  Please show this screen or your order number (#12345) to the staff when you arrive.
+                  Please show this screen or your order number ({order.hp_order_id || '#12345'}) to the staff when you arrive.
                 </Text>
               </View>
             </View>
@@ -527,5 +685,55 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontFamily: 'Montserrat-SemiBold',
     color: Colors.primary,
+  },
+  cancelledCard: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  cancelledTitle: {
+    fontSize: FontSize.xl,
+    fontFamily: 'Montserrat-Bold',
+    color: Colors.error,
+    marginBottom: Spacing.md,
+  },
+  cancelledMessage: {
+    fontSize: FontSize.md,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  cancelledButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelledButtonText: {
+    color: Colors.text.inverse,
+    fontSize: FontSize.md,
+    fontFamily: 'Montserrat-SemiBold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: FontSize.md,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: FontSize.lg,
+    fontFamily: 'Montserrat-SemiBold',
+    color: Colors.error,
   },
 });

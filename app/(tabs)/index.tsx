@@ -23,6 +23,7 @@ const SpiceLevel = ({ level }: { level: number }) => {
 export default function DiscoverScreen() {
   const [personalizedDishes, setPersonalizedDishes] = useState<any[]>([]);
   const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function DiscoverScreen() {
       setLoading(true);
       const user = await userService.getCurrentUser();
       if (user) {
+        setCurrentUser(user);
         const { data } = await onboardingService.getOnboardingData(user.id);
         setOnboardingData(data);
         const { dishes } = await onboardingService.getPersonalizedRecommendations(user.id);
@@ -46,18 +48,29 @@ export default function DiscoverScreen() {
     router.push(`/country/${countryName.toLowerCase()}`);
   };
 
+  // Get user's first name for welcome message
+  const getUserFirstName = () => {
+    if (currentUser?.full_name) {
+      return currentUser.full_name.split(' ')[0];
+    }
+    return 'there';
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Discover African Cuisine</Text>
+          <Text style={styles.greeting}>Welcome {getUserFirstName()}</Text>
           <Text style={styles.subheading}>
-            Explore authentic dishes and learn about their rich cultural heritage
+            Discover Authentic African Cuisines
+          </Text>
+          <Text style={styles.culturalSubheading}>
+            Learn about the rich cultural heritage of each dish
           </Text>
           {onboardingData && (
             <Text style={styles.personalizedMsg}>
-              Welcome back{onboardingData.fullName ? `, ${onboardingData.fullName}` : ''}! Your recommendations are personalized.
+              Your recommendations are personalized based on your preferences.
             </Text>
           )}
         </View>
@@ -69,7 +82,10 @@ export default function DiscoverScreen() {
             {countries.map((country, index) => (
               <TouchableOpacity 
                 key={index} 
-                style={styles.countryCard}
+                style={[
+                  styles.countryCard,
+                  { backgroundColor: getCountryCardColor(index) }
+                ]}
                 onPress={() => handleCountryPress(country.name)}
                 activeOpacity={0.8}
               >
@@ -114,8 +130,8 @@ export default function DiscoverScreen() {
                     {dish.description}
                   </Text>
                   <View style={styles.dishFooter}>
-                    <Text style={styles.dishPrice}>${dish.price?.toFixed(2) ?? ''}</Text>
-                    <SpiceLevel level={dish.spice_level} />
+                    <Text style={styles.dishPrice}>${dish.base_price?.toFixed(2) ?? ''}</Text>
+                    <SpiceLevel level={dish.base_spice_level} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -141,6 +157,25 @@ export default function DiscoverScreen() {
   );
 }
 
+// Helper function to get different Hoppn brand color tints for country cards
+const getCountryCardColor = (index: number) => {
+  const colors = [
+    '#F15029', // Primary orange
+    '#FF6B4A', // Orange tint
+    '#FF8A6B', // Orange light tint
+    '#FFA88C', // Orange very light tint
+    '#4C8BF5', // Secondary blue
+    '#6B9DFF', // Blue tint
+    '#8AB0FF', // Blue light tint
+    '#A9C3FF', // Blue very light tint
+    '#FFBF00', // Accent yellow
+    '#FFCC33', // Yellow tint
+    '#FFD966', // Yellow light tint
+    '#FFE699', // Yellow very light tint
+  ];
+  return colors[index % colors.length];
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -148,19 +183,36 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
   },
   greeting: {
     fontSize: FontSize.xxxl,
     fontFamily: 'Montserrat-Bold',
     color: Colors.text.primary,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+    lineHeight: 44,
   },
   subheading: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.xl,
+    fontFamily: 'Montserrat-SemiBold',
+    color: Colors.text.primary,
+    marginBottom: Spacing.sm,
+    lineHeight: 28,
+  },
+  culturalSubheading: {
+    fontSize: FontSize.lg,
     fontFamily: 'OpenSans-Regular',
     color: Colors.text.secondary,
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: Spacing.lg,
+  },
+  personalizedMsg: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.primary,
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
   },
   section: {
     marginBottom: Spacing.xl,
@@ -170,7 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
     fontSize: FontSize.xl,
@@ -187,49 +239,54 @@ const styles = StyleSheet.create({
   },
   countryCard: {
     width: 160,
-    backgroundColor: Colors.background.secondary,
-    borderRadius: 12,
-    padding: Spacing.md,
+    borderRadius: 16,
+    padding: Spacing.lg,
     marginRight: Spacing.md,
     alignItems: 'center',
     shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   countryFlag: {
-    fontSize: 40,
+    fontSize: 32,
     marginBottom: Spacing.sm,
   },
   countryName: {
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-    color: Colors.text.primary,
+    color: Colors.text.inverse,
+    textAlign: 'center',
     marginBottom: Spacing.xs,
+    lineHeight: 20,
   },
   countryDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
+    color: Colors.text.inverse,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
+    opacity: 0.9,
   },
   dishCard: {
-    backgroundColor: Colors.background.primary,
-    borderRadius: 12,
+    backgroundColor: Colors.background.secondary,
+    borderRadius: 16,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
+    overflow: 'hidden',
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 6,
     elevation: 3,
-    overflow: 'hidden',
   },
   dishImage: {
     width: '100%',
-    height: 200,
+    height: 160,
+    resizeMode: 'cover',
   },
   dishContent: {
     padding: Spacing.md,
@@ -241,30 +298,31 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   dishName: {
-    flex: 1,
     fontSize: FontSize.lg,
     fontFamily: 'Montserrat-SemiBold',
     color: Colors.text.primary,
+    flex: 1,
     marginRight: Spacing.sm,
+    lineHeight: 22,
   },
   countryInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   dishFlag: {
-    fontSize: 20,
+    fontSize: 16,
     marginRight: Spacing.xs,
   },
   dishOrigin: {
     fontSize: FontSize.sm,
-    fontFamily: 'OpenSans-Regular',
+    fontFamily: 'OpenSans-SemiBold',
     color: Colors.text.secondary,
   },
   dishDescription: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
     color: Colors.text.secondary,
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: Spacing.md,
   },
   dishFooter: {
@@ -279,9 +337,10 @@ const styles = StyleSheet.create({
   },
   spiceContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   chili: {
-    fontSize: 12,
+    fontSize: 14,
     opacity: 0.3,
   },
   chiliActive: {
@@ -290,21 +349,28 @@ const styles = StyleSheet.create({
   ctaSection: {
     backgroundColor: Colors.background.secondary,
     margin: Spacing.lg,
+    borderRadius: 20,
     padding: Spacing.xl,
-    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   ctaTitle: {
     fontSize: FontSize.xl,
     fontFamily: 'Montserrat-Bold',
     color: Colors.text.primary,
     marginBottom: Spacing.sm,
+    textAlign: 'center',
   },
   ctaSubtitle: {
     fontSize: FontSize.md,
     fontFamily: 'OpenSans-Regular',
     color: Colors.text.secondary,
     textAlign: 'center',
+    lineHeight: 22,
     marginBottom: Spacing.lg,
   },
   ctaButton: {
@@ -312,17 +378,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 12,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   ctaButtonText: {
     color: Colors.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
-  },
-  personalizedMsg: {
-    fontSize: FontSize.md,
-    fontFamily: 'OpenSans-Regular',
-    color: Colors.text.secondary,
     textAlign: 'center',
-    marginTop: Spacing.sm,
   },
 });

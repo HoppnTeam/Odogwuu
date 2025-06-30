@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,6 @@ import { router } from 'expo-router';
 import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { PreferenceCard } from '@/components/onboarding/PreferenceCard';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { SpiceLevel } from '@/types';
@@ -50,10 +49,15 @@ const spiceOptions = [
 ];
 
 export default function SpiceToleranceScreen() {
-  const { onboardingData, updateOnboardingData, currentStep } = useOnboarding();
+  const { onboardingData, updateOnboardingData, currentStep, setCurrentStep } = useOnboarding();
   const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<SpiceLevel>(
-    onboardingData.spiceLevel || 3
+    (onboardingData.spiceLevel as SpiceLevel) || 3
   );
+
+  // Set the current step to 3 (spice-tolerance is step 3 of 5)
+  useEffect(() => {
+    setCurrentStep(3);
+  }, [setCurrentStep]);
 
   const handleSpiceLevelSelect = (level: SpiceLevel) => {
     setSelectedSpiceLevel(level);
@@ -69,18 +73,12 @@ export default function SpiceToleranceScreen() {
   };
 
   const handleSkip = () => {
-    updateOnboardingData({ spiceLevel: 3 }); // Default to medium
+    updateOnboardingData({ spiceLevel: 3 as SpiceLevel }); // Default to medium
     router.push('/onboarding/exploration-style');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Progress Indicator */}
-      <OnboardingProgress 
-        currentStep={currentStep} 
-        totalSteps={5} 
-      />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -123,7 +121,7 @@ export default function SpiceToleranceScreen() {
               title={option.title}
               description={option.description}
               isSelected={selectedSpiceLevel === option.level}
-              onPress={() => handleSpiceLevelSelect(option.level)}
+              onPress={() => handleSpiceLevelSelect(option.level as SpiceLevel)}
             />
           ))}
         </View>

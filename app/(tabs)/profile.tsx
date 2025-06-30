@@ -321,6 +321,12 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     marginBottom: Spacing.xs,
   },
+  orderSubtitle: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+    marginBottom: Spacing.xs,
+  },
   orderDate: {
     fontSize: FontSize.sm,
     fontFamily: 'OpenSans-Regular',
@@ -556,6 +562,10 @@ export default function ProfileScreen() {
 
   const getOrderTotal = (items: CartItem[]) => {
     return items.reduce((total, item) => total + (item.base_price * item.quantity), 0);
+  };
+
+  const getOrderDisplayId = (order: Order) => {
+    return order.hp_order_id || `Order #${order.id.slice(-8)}`;
   };
 
   const handleLogout = () => {
@@ -874,6 +884,9 @@ export default function ProfileScreen() {
               <View key={order.id} style={[styles.orderItem, index === recentOrders.length - 1 && styles.orderItemLast]}>
                 <View style={styles.orderInfo}>
                   <Text style={styles.orderTitle}>
+                    {getOrderDisplayId(order)}
+                  </Text>
+                  <Text style={styles.orderSubtitle}>
                     {getOrderItemsSummary(order.items)}
                   </Text>
                   <Text style={styles.orderDate}>

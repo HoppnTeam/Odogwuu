@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -12,7 +12,6 @@ import { router } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { OrderFrequency } from '@/types';
 
@@ -48,7 +47,12 @@ export default function OrderFrequencyScreen() {
   const [selectedFrequency, setSelectedFrequency] = useState<OrderFrequency | null>(null);
   const [loading, setLoading] = useState(false);
   
-  const { updateOnboardingData, completeOnboarding, currentStep } = useOnboarding();
+  const { updateOnboardingData, completeOnboarding, currentStep, setCurrentStep } = useOnboarding();
+
+  // Set the current step to 5 (order-frequency is step 5 of 5)
+  useEffect(() => {
+    setCurrentStep(5);
+  }, [setCurrentStep]);
 
   const handleFrequencySelect = (frequency: OrderFrequency) => {
     setSelectedFrequency(frequency);
@@ -68,9 +72,7 @@ export default function OrderFrequencyScreen() {
     try {
       // Update onboarding data with final step
       updateOnboardingData({
-        orderFrequency: selectedFrequency,
-        completedAt: new Date().toISOString(),
-        onboardingVersion: '1.0'
+        orderFrequency: selectedFrequency
       });
 
       // Complete onboarding and save to Supabase
@@ -88,12 +90,6 @@ export default function OrderFrequencyScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Progress Indicator */}
-      <OnboardingProgress 
-        currentStep={currentStep} 
-        totalSteps={5} 
-      />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
