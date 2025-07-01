@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { locationService, UserLocation, RestaurantLocation } from './location-service';
 import { Restaurant } from '@/types';
+import { errorHandler, ErrorType, ErrorSeverity } from '@/lib/error-handler';
 
 export interface NearbyRestaurant extends Restaurant {
   distance?: number;
@@ -34,13 +35,19 @@ class RestaurantService {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching restaurants:', error);
+        const appError = errorHandler.handleSupabaseError(error, {
+          action: 'get_all_restaurants'
+        });
+        errorHandler.handleError(appError, false, true);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching restaurants:', error);
+      const appError = errorHandler.handleNetworkError(error, {
+        action: 'get_all_restaurants'
+      });
+      errorHandler.handleError(appError, false, true);
       return [];
     }
   }
@@ -89,7 +96,10 @@ class RestaurantService {
       // Apply additional filters
       return this.applyFilters(nearbyRestaurants, filters);
     } catch (error) {
-      console.error('Error getting nearby restaurants:', error);
+      const appError = errorHandler.handleNetworkError(error, {
+        action: 'get_nearby_restaurants'
+      });
+      errorHandler.handleError(appError, false, true);
       return [];
     }
   }
@@ -113,13 +123,21 @@ class RestaurantService {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching restaurants by cuisine:', error);
+        const appError = errorHandler.handleSupabaseError(error, {
+          action: 'get_restaurants_by_cuisine',
+          data: { cuisineType }
+        });
+        errorHandler.handleError(appError, false, true);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching restaurants by cuisine:', error);
+      const appError = errorHandler.handleNetworkError(error, {
+        action: 'get_restaurants_by_cuisine',
+        data: { cuisineType }
+      });
+      errorHandler.handleError(appError, false, true);
       return [];
     }
   }
@@ -141,13 +159,21 @@ class RestaurantService {
         .single();
 
       if (error) {
-        console.error('Error fetching restaurant by ID:', error);
+        const appError = errorHandler.handleSupabaseError(error, {
+          action: 'get_restaurant_by_id',
+          data: { restaurantId: id }
+        });
+        errorHandler.handleError(appError, false, true);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Error fetching restaurant by ID:', error);
+      const appError = errorHandler.handleNetworkError(error, {
+        action: 'get_restaurant_by_id',
+        data: { restaurantId: id }
+      });
+      errorHandler.handleError(appError, false, true);
       return null;
     }
   }
@@ -175,13 +201,21 @@ class RestaurantService {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error searching restaurants:', error);
+        const appError = errorHandler.handleSupabaseError(error, {
+          action: 'search_restaurants',
+          data: { query }
+        });
+        errorHandler.handleError(appError, false, true);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error searching restaurants:', error);
+      const appError = errorHandler.handleNetworkError(error, {
+        action: 'search_restaurants',
+        data: { query }
+      });
+      errorHandler.handleError(appError, false, true);
       return [];
     }
   }

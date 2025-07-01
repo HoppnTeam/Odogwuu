@@ -3,7 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { OnboardingData } from '@/types';
 import { SecurityService } from '@/lib/security-service';
-import { Alert } from 'react-native';
+import { errorHandler, ErrorType, ErrorSeverity } from '@/lib/error-handler';
+import { useAuthErrorHandler } from '@/hooks/useErrorHandler';
 
 // User type for in-memory storage during onboarding
 export interface TempUser {
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionCheckInterval, setSessionCheckInterval] = useState<ReturnType<typeof setInterval> | null>(null);
+  const { handleError, executeWithErrorHandling } = useAuthErrorHandler();
 
   // Session monitoring
   useEffect(() => {
@@ -105,22 +107,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setLoading(true);
-      
+    const result = await executeWithErrorHandling(async () => {
       // Validate inputs
       const emailValidation = SecurityService.validateEmail(email);
       if (!emailValidation.isValid) {
+        const validationError = errorHandler.handleValidationError('Email', emailValidation.error || 'Invalid email');
+        handleError(validationError, { action: 'signup_validation' });
         return { success: false, error: emailValidation.error };
       }
       
       const passwordValidation = SecurityService.validatePassword(password);
       if (!passwordValidation.isValid) {
+        const validationError = errorHandler.handleValidationError('Password', passwordValidation.error || 'Invalid password');
+        handleError(validationError, { action: 'signup_validation' });
         return { success: false, error: passwordValidation.error };
       }
       
       const nameValidation = SecurityService.validateName(fullName);
       if (!nameValidation.isValid) {
+        const validationError = errorHandler.handleValidationError('Name', nameValidation.error || 'Invalid name');
+        handleError(validationError, { action: 'signup_validation' });
         return { success: false, error: nameValidation.error };
       }
       
@@ -137,7 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         SecurityService.logSecurityEvent('SIGNUP_FAILED', { error: error.message, email: sanitizedEmail });
-        throw error;
+        const authError = errorHandler.handleSupabaseError(error, { 
+          action: 'signup',
+          userId: undefined // User creation failed, so no userId available
+        });
+        handleError(authError);
+        return { success: false, error: authError.userMessage };
       }
       
       // Create user profile in database immediately
@@ -153,8 +164,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
 
         if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          SecurityService.logSecurityEvent('PROFILE_CREATION_FAILED', { userId: data.user.id, error: profileError.message });
+          const profileErrorObj = errorHandler.handleSupabaseError(profileError, {
+            action: 'profile_creation',
+            userId: data.user.id
+          });
+          handleError(profileErrorObj, { action: 'profile_creation' });
+          // Don't fail signup for profile creation errors, just log them
         }
       }
       
@@ -168,13 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       SecurityService.logSecurityEvent('SIGNUP_SUCCESS', { userId: data.user?.id, email: sanitizedEmail });
       return { success: true };
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      SecurityService.logSecurityEvent('SIGNUP_ERROR', { error: error.message });
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
+    }, { action: 'signup' });
+    
+    return result ?? { success: false, error: 'Signup failed' };
   };
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

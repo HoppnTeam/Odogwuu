@@ -79,6 +79,13 @@ export interface Restaurant {
   updated_at: string;
 }
 
+export type DishSize = {
+  label: string; // e.g., 'S', 'M', 'L'
+  price: number;
+  description?: string;
+  is_available?: boolean;
+};
+
 export interface Dish {
   id: string;
   restaurant_id: string;
@@ -103,6 +110,7 @@ export interface Dish {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  sizes?: DishSize[];
 }
 
 export interface CartItem {
@@ -120,6 +128,7 @@ export interface CartItem {
   extras?: string[];
   preparation_notes?: string;
   total_price: number;
+  selected_size?: DishSize;
 }
 
 export interface CartExtra {

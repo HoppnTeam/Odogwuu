@@ -398,6 +398,15 @@ export default function CartScreen() {
 
               {/* Customization Display */}
               <View style={styles.customizationDisplay}>
+                {item.selected_size && (
+                  <View style={styles.customizationTag}>
+                    <Package color={Colors.secondary} size={14} />
+                    <Text style={styles.customizationText}>
+                      Size: {item.selected_size.label}
+                    </Text>
+                  </View>
+                )}
+                
                 {item.spice_level && (
                   <View style={styles.customizationTag}>
                     <Flame color={Colors.primary} size={14} />
@@ -452,7 +461,9 @@ export default function CartScreen() {
               )}
               
               <View style={styles.itemFooter}>
-                <Text style={styles.itemPrice}>${Number(item.total_price ?? item.base_price ?? 0).toFixed(2)}</Text>
+                <Text style={styles.itemPrice}>
+                  ${item.selected_size ? (item.selected_size.price * item.quantity).toFixed(2) : Number(item.total_price ?? item.base_price ?? 0).toFixed(2)}
+                </Text>
                 
                 <View style={styles.quantityControls}>
                   <TouchableOpacity

@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, BookOpen, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { mockDishes, countries } from '@/data/mockData';
+import { countries } from '@/data/mockData';
+import { getHoppnDishesByCountry } from '@/lib/hoppn-dishes-service';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -22,11 +23,26 @@ const SpiceLevel = ({ level }: { level: number }) => {
 export default function CountryDishesScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const countryName = name?.charAt(0).toUpperCase() + name?.slice(1);
-  
   const country = countries.find(c => c.name.toLowerCase() === name?.toLowerCase());
-  const countryDishes = mockDishes.filter(dish => 
-    dish.country_origin.toLowerCase() === countryName?.toLowerCase()
-  );
+
+  const [dishes, setDishes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    getHoppnDishesByCountry(countryName || '')
+      .then(data => {
+        if (isMounted) setDishes(data);
+      })
+      .catch(() => {
+        if (isMounted) setDishes([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [countryName]);
 
   if (!country) {
     return (
@@ -63,15 +79,16 @@ export default function CountryDishesScreen() {
             <BookOpen color={Colors.primary} size={24} />
             <Text style={styles.sectionTitle}>Traditional Dishes</Text>
           </View>
-          
-          {countryDishes.length === 0 ? (
+          {loading ? (
+            <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 32 }} />
+          ) : dishes.length === 0 ? (
             <View style={styles.noDishesContainer}>
               <Text style={styles.noDishesText}>
                 No dishes available for {country.name} yet. Check back soon!
               </Text>
             </View>
           ) : (
-            countryDishes.map((dish) => (
+            dishes.map((dish) => (
               <TouchableOpacity
                 key={dish.id}
                 style={styles.dishCard}
@@ -79,17 +96,14 @@ export default function CountryDishesScreen() {
                 activeOpacity={0.8}
               >
                 <Image source={{ uri: dish.image_url }} style={styles.dishImage} />
-                
                 <View style={styles.dishContent}>
                   <View style={styles.dishHeader}>
                     <Text style={styles.dishName}>{dish.name}</Text>
-                    <Text style={styles.dishPrice}>${typeof dish.base_price === 'number' ? dish.base_price.toFixed(2) : 'N/A'}</Text>
+                    <Text style={styles.dishPrice}>{dish.base_price ? `$${dish.base_price.toFixed(2)}` : ''}</Text>
                   </View>
-                  
                   <Text style={styles.dishDescription} numberOfLines={2}>
                     {dish.description}
                   </Text>
-                  
                   <View style={styles.dishMeta}>
                     <SpiceLevel level={dish.base_spice_level} />
                     <View style={styles.dishTags}>
@@ -105,7 +119,6 @@ export default function CountryDishesScreen() {
                       )}
                     </View>
                   </View>
-                  
                   {/* Cultural Story Preview */}
                   <View style={styles.storyPreview}>
                     <Text style={styles.storyTitle}>Cultural Story</Text>
@@ -131,25 +144,21 @@ export default function CountryDishesScreen() {
             <MapPin color={Colors.primary} size={24} />
             <Text style={styles.sectionTitle}>About {country.name} Cuisine</Text>
           </View>
-          
           <View style={styles.culturalCard}>
             <Text style={styles.culturalText}>
               {country.name} cuisine represents centuries of culinary tradition, 
               blending indigenous ingredients with historical influences to create 
               distinctive flavors that tell the story of the region&apos;s rich cultural heritage.
             </Text>
-            
             <View style={styles.culturalFeatures}>
               <View style={styles.featureItem}>
                 <Text style={styles.featureIcon}>🌶️</Text>
                 <Text style={styles.featureText}>Bold spices and seasonings</Text>
               </View>
-              
               <View style={styles.featureItem}>
                 <Text style={styles.featureIcon}>🥘</Text>
                 <Text style={styles.featureText}>Traditional cooking methods</Text>
               </View>
-              
               <View style={styles.featureItem}>
                 <Text style={styles.featureIcon}>🌾</Text>
                 <Text style={styles.featureText}>Local grains and vegetables</Text>

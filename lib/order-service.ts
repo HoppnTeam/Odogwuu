@@ -28,6 +28,7 @@ export interface Order {
   estimated_pickup_time?: string;
   actual_pickup_time?: string;
   special_instructions?: string;
+  hp_order_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -344,6 +345,27 @@ class OrderService {
       console.error('Track order error:', error);
       SecurityService.logSecurityEvent('ORDER_TRACKING_ERROR', { error: error.message });
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get the user's active order (pending, confirmed, or preparing)
+   */
+  async getActiveOrder(): Promise<Order | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'confirmed', 'preparing'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (error || !orders || orders.length === 0) return null;
+      return orders[0];
+    } catch {
+      return null;
     }
   }
 }

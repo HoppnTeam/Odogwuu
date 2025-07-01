@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Star, Clock, MapPin, Phone } from 'lucide-react-native';
+import { ArrowLeft, Star, Clock, MapPin, Phone, AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
 import { getRestaurantById, getDishesByRestaurant } from '@/data/mockData';
+import { useDataErrorHandler } from '@/hooks/useErrorHandler';
+import { errorHandler, ErrorType } from '@/lib/error-handler';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -22,14 +24,73 @@ const SpiceLevel = ({ level }: { level: number }) => {
 export default function RestaurantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [selectedCategory, setSelectedCategory] = useState('All');
-  
-  const restaurant = getRestaurantById(id!);
-  const dishes = getDishesByRestaurant(id!);
-  
-  if (!restaurant) {
+  const [restaurant, setRestaurant] = useState<any>(null);
+  const [dishes, setDishes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { handleError, executeWithErrorHandling } = useDataErrorHandler();
+
+  useEffect(() => {
+    const loadRestaurantData = async () => {
+      await executeWithErrorHandling(async () => {
+        try {
+          const restaurantData = getRestaurantById(id!);
+          const dishesData = getDishesByRestaurant(id!);
+          
+          if (!restaurantData) {
+            const notFoundError = errorHandler.createError(
+              ErrorType.DATABASE,
+              'Restaurant not found',
+              null,
+              { action: 'load_restaurant', data: { restaurantId: id } }
+            );
+            handleError(notFoundError);
+            setError('Restaurant not found');
+            return;
+          }
+          
+          setRestaurant(restaurantData);
+          setDishes(dishesData);
+        } catch (error) {
+          const appError = errorHandler.createError(
+            ErrorType.DATABASE,
+            'Failed to load restaurant data',
+            error,
+            { action: 'load_restaurant_data', data: { restaurantId: id } }
+          );
+          handleError(appError);
+          setError('Failed to load restaurant data');
+        }
+      }, { action: 'load_restaurant_data' });
+    };
+
+    loadRestaurantData();
+  }, [id, executeWithErrorHandling, handleError]);
+
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text>Restaurant not found</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading restaurant...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !restaurant) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <AlertTriangle color={Colors.error} size={48} />
+          <Text style={styles.errorTitle}>Restaurant Not Found</Text>
+          <Text style={styles.errorMessage}>
+            {error || 'The restaurant you\'re looking for doesn\'t exist or has been removed.'}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -172,6 +233,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: FontSize.lg,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+    marginTop: Spacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  errorTitle: {
+    fontSize: FontSize.xxl,
+    fontFamily: 'Montserrat-Bold',
+    color: Colors.text.primary,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: FontSize.lg,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing.xl,
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: 12,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  retryButtonText: {
+    color: Colors.text.inverse,
+    fontSize: FontSize.md,
+    fontFamily: 'Montserrat-SemiBold',
   },
   imageContainer: {
     position: 'relative',

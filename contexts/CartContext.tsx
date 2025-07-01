@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { CartItem, Dish } from '@/types';
+import { CartItem, Dish, DishSize } from '@/types';
 
 interface CartState {
   items: CartItem[];
@@ -7,7 +7,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: { dish: Dish; quantity: number; special_instructions?: string; spice_level?: number; allergen_triggers?: string[]; extras?: string[]; preparation_notes?: string } }
+  | { type: 'ADD_ITEM'; payload: { dish: Dish; quantity: number; special_instructions?: string; spice_level?: number; allergen_triggers?: string[]; extras?: string[]; preparation_notes?: string; selected_size?: DishSize } }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { dishId: string; quantity: number } }
   | { type: 'UPDATE_CUSTOMIZATION'; payload: { dishId: string; customizations: Partial<CartItem> } }
@@ -31,7 +31,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const calculateItemTotal = (item: CartItem): number => {
-  const dishTotal = item.base_price * item.quantity;
+  const itemPrice = item.selected_size ? item.selected_size.price : item.base_price;
+  const dishTotal = itemPrice * item.quantity;
   return dishTotal;
 };
 
@@ -74,7 +75,10 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
             allergen_triggers: action.payload.allergen_triggers,
             extras: action.payload.extras,
             preparation_notes: action.payload.preparation_notes,
-            total_price: Number(action.payload.dish.base_price) * action.payload.quantity,
+            selected_size: action.payload.selected_size,
+            total_price: action.payload.selected_size 
+              ? action.payload.selected_size.price * action.payload.quantity
+              : Number(action.payload.dish.base_price) * action.payload.quantity,
           },
         ];
       }
@@ -92,7 +96,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'UPDATE_QUANTITY': {
       const newItems = state.items.map(item =>
         item.dish_id === action.payload.dishId
-          ? { ...item, quantity: action.payload.quantity, total_price: item.base_price * action.payload.quantity }
+          ? { 
+              ...item, 
+              quantity: action.payload.quantity, 
+              total_price: item.selected_size 
+                ? item.selected_size.price * action.payload.quantity
+                : item.base_price * action.payload.quantity
+            }
           : item
       ).filter(item => item.quantity > 0);
 

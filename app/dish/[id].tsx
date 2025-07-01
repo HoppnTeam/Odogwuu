@@ -54,6 +54,24 @@ export default function DishDetailScreen() {
     );
   }
 
+  // Multi-size logic
+  const hasSizes = dish.sizes && Array.isArray(dish.sizes) && dish.sizes.length > 0;
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+  const selectedSize = hasSizes ? dish.sizes![selectedSizeIndex] : null;
+
+  // Price logic
+  let displayPrice = dish.base_price ?? 0;
+  if (hasSizes) {
+    displayPrice = selectedSize?.price ?? dish.sizes![0].price;
+  }
+
+  // Price range for badge
+  let priceRange = '';
+  if (hasSizes && dish.sizes!.length > 1) {
+    const prices = dish.sizes!.map(s => s.price).sort((a, b) => a - b);
+    priceRange = `$${prices[0].toFixed(2)} - $${prices[prices.length - 1].toFixed(2)}`;
+  }
+
   const handleAddToCart = async () => {
     setAddError(null);
     // Block if cart contains items from a different restaurant
@@ -68,11 +86,19 @@ export default function DishDetailScreen() {
       setAddError('You already have an active order. Please complete or cancel it before starting a new one.');
       return;
     }
-    addItem(dish, quantity, { special_instructions: specialInstructions });
+    // Pass selected size info to cart
+    addItem(
+      dish,
+      quantity,
+      {
+        special_instructions: specialInstructions,
+        selected_size: hasSizes ? selectedSize! : undefined
+      }
+    );
     router.back();
   };
 
-  const totalPrice = dish.price * quantity;
+  const totalPrice = displayPrice * quantity;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,6 +106,12 @@ export default function DishDetailScreen() {
         {/* Header Image */}
         <View style={styles.imageContainer}>
           <Image source={{ uri: dish.image_url }} style={styles.headerImage} />
+          {/* Multi-sizes badge */}
+          {hasSizes && dish.sizes.length > 1 && (
+            <View style={styles.multiSizesBadge}>
+              <Text style={styles.multiSizesBadgeText}>Multi-sizes</Text>
+            </View>
+          )}
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
@@ -98,10 +130,35 @@ export default function DishDetailScreen() {
             </View>
           </View>
           
-          <Text style={styles.price}>${dish.price.toFixed(2)}</Text>
+          {/* Price or price range */}
+          {hasSizes && dish.sizes.length > 1 ? (
+            <Text style={styles.price}>{priceRange}</Text>
+          ) : (
+            <Text style={styles.price}>${displayPrice.toFixed(2)}</Text>
+          )}
+          {/* Size selector */}
+          {hasSizes && dish.sizes.length > 1 && (
+            <View style={styles.sizeSelector}>
+              {dish.sizes!.map((size, idx) => (
+                <TouchableOpacity
+                  key={size.label}
+                  style={[styles.sizeOption, idx === selectedSizeIndex && styles.sizeOptionSelected]}
+                  onPress={() => setSelectedSizeIndex(idx)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.sizeLabel, idx === selectedSizeIndex && styles.sizeLabelSelected]}>
+                    {size.label}
+                  </Text>
+                  <Text style={[styles.sizePrice, idx === selectedSizeIndex && styles.sizeLabelSelected]}>
+                    ${size.price.toFixed(2)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
           <Text style={styles.description}>{dish.description}</Text>
           
-          <SpiceLevel level={dish.spice_level} />
+          <SpiceLevel level={dish.base_spice_level} />
           
           <View style={styles.tags}>
             {dish.is_vegetarian && (
@@ -134,19 +191,21 @@ export default function DishDetailScreen() {
           />
 
           {/* Ingredients */}
-          <View style={styles.educationalSection}>
-            <View style={styles.educationalHeader}>
-              <Utensils color={Colors.primary} size={20} />
-              <Text style={styles.educationalTitle}>Ingredients</Text>
+          {dish.base_ingredients && (
+            <View style={styles.educationalSection}>
+              <View style={styles.educationalHeader}>
+                <Utensils color={Colors.primary} size={20} />
+                <Text style={styles.educationalTitle}>Ingredients</Text>
+              </View>
+              <View style={styles.ingredientsList}>
+                {dish.base_ingredients.map((ingredient: string, index: number) => (
+                  <View key={index} style={styles.ingredient}>
+                    <Text style={styles.ingredientText}>• {ingredient}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-            <View style={styles.ingredientsList}>
-              {dish.ingredients.map((ingredient, index) => (
-                <View key={index} style={styles.ingredient}>
-                  <Text style={styles.ingredientText}>• {ingredient}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
+          )}
 
           {/* Preparation Method */}
           {dish.preparation_method && (
@@ -475,5 +534,52 @@ const styles = StyleSheet.create({
     color: Colors.text.inverse,
     fontSize: FontSize.md,
     fontFamily: 'Montserrat-SemiBold',
+  },
+  multiSizesBadge: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: Colors.secondary,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    zIndex: 10,
+  },
+  multiSizesBadgeText: {
+    color: Colors.text.inverse,
+    fontFamily: 'Montserrat-Bold',
+    fontSize: FontSize.sm,
+  },
+  sizeSelector: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.md,
+  },
+  sizeOption: {
+    backgroundColor: Colors.background.secondary,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.light,
+  },
+  sizeOptionSelected: {
+    backgroundColor: Colors.secondary,
+    borderColor: Colors.secondary,
+  },
+  sizeLabel: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: FontSize.md,
+    color: Colors.text.primary,
+  },
+  sizeLabelSelected: {
+    color: Colors.text.inverse,
+  },
+  sizePrice: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
   },
 });

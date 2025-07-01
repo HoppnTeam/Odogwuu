@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -7,6 +7,8 @@ import { Spacing, FontSize } from '@/constants/Spacing';
 import { countries, mockDishes } from '@/data/mockData';
 import { userService } from '@/lib/supabase-service';
 import { onboardingService } from '@/lib/onboarding-service';
+import { useDataErrorHandler } from '@/hooks/useErrorHandler';
+import { errorHandler, ErrorType } from '@/lib/error-handler';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -25,22 +27,48 @@ export default function DiscoverScreen() {
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { handleError, executeWithErrorHandling } = useDataErrorHandler();
 
   useEffect(() => {
     const fetchPersonalization = async () => {
-      setLoading(true);
-      const user = await userService.getCurrentUser();
-      if (user) {
-        setCurrentUser(user);
-        const { data } = await onboardingService.getOnboardingData(user.id);
-        setOnboardingData(data);
-        const { dishes } = await onboardingService.getPersonalizedRecommendations(user.id);
-        setPersonalizedDishes(dishes || []);
-      }
-      setLoading(false);
+      await executeWithErrorHandling(async () => {
+        const user = await userService.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          
+          try {
+            const { data } = await onboardingService.getOnboardingData(user.id);
+            setOnboardingData(data);
+          } catch (error) {
+            const appError = errorHandler.createError(
+              ErrorType.DATABASE,
+              'Failed to load onboarding data',
+              error,
+              { action: 'fetch_onboarding_data', userId: user.id }
+            );
+            handleError(appError);
+          }
+          
+          try {
+            const { dishes } = await onboardingService.getPersonalizedRecommendations(user.id);
+            setPersonalizedDishes(dishes || []);
+          } catch (error) {
+            const appError = errorHandler.createError(
+              ErrorType.DATABASE,
+              'Failed to load personalized recommendations',
+              error,
+              { action: 'fetch_recommendations', userId: user.id }
+            );
+            handleError(appError);
+            // Fallback to mock dishes
+            setPersonalizedDishes(mockDishes.slice(0, 4));
+          }
+        }
+      }, { action: 'fetch_personalization' });
     };
+    
     fetchPersonalization();
-  }, []);
+  }, [executeWithErrorHandling, handleError]);
 
   const featuredDishes = personalizedDishes.length > 0 ? personalizedDishes : mockDishes.slice(0, 4);
 

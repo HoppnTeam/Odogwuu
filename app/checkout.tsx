@@ -92,22 +92,22 @@ export default function CheckoutScreen() {
 
       // Save order to Supabase with all customization data
       const savedOrder = await orderService.createOrder(orderData);
-      if (savedOrder) {
+      if (savedOrder.success && savedOrder.order) {
         // Order saved successfully
         clearCart();
         // Show success message with HP order ID
         Alert.alert(
           'Order Confirmed! 🎉',
-          `Your order ${savedOrder.hp_order_id} has been placed successfully. You'll receive updates on your order status.`,
+          `Your order ${savedOrder.order.hp_order_id} has been placed successfully. You'll receive updates on your order status.`,
           [
             {
               text: 'Track Order',
-              onPress: () => router.push(`/order-tracking?orderId=${savedOrder.id}`)
+              onPress: () => router.push(`/order-tracking?orderId=${savedOrder.order.id}`)
             }
           ]
         );
       } else {
-        Alert.alert('Error', 'Failed to create order. Please try again.');
+        Alert.alert('Error', savedOrder.error || 'Failed to create order. Please try again.');
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -199,10 +199,20 @@ export default function CheckoutScreen() {
                 <Text style={styles.itemName}>{item.dish_name}</Text>
                 <Text style={styles.itemDetails}>
                   🇳🇬 Nigeria • Qty: {item.quantity}
+                  {item.selected_size && ` • Size: ${item.selected_size.label}`}
                 </Text>
                 
                 {/* Customization Display */}
                 <View style={styles.customizationDisplay}>
+                  {item.selected_size && (
+                    <View style={styles.customizationTag}>
+                      <Package color={Colors.secondary} size={12} />
+                      <Text style={styles.customizationText}>
+                        Size: {item.selected_size.label}
+                      </Text>
+                    </View>
+                  )}
+                  
                   {item.spice_level && (
                     <View style={styles.customizationTag}>
                       <Flame color={Colors.primary} size={12} />
@@ -241,7 +251,9 @@ export default function CheckoutScreen() {
                 </View>
               </View>
               
-              <Text style={styles.itemPrice}>${item.total_price.toFixed(2)}</Text>
+              <Text style={styles.itemPrice}>
+                ${item.selected_size ? (item.selected_size.price * item.quantity).toFixed(2) : item.total_price.toFixed(2)}
+              </Text>
             </View>
           ))}
           
