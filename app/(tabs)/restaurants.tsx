@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, Modal, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, Modal, ActivityIndicator } from 'react-native';
+import OptimizedImage from '@/components/OptimizedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MapPin, Clock, Star, Map, Filter, Search } from 'lucide-react-native';
@@ -88,10 +89,11 @@ export default function RestaurantsScreen() {
       onPress={() => handleRestaurantPress(item)}
       activeOpacity={0.8}
     >
-      <Image 
-        source={{ uri: item.image_url }} 
+      <OptimizedImage 
+        uri={item.image_url} 
         style={styles.restaurantImage}
-        resizeMode="cover"
+        accessibilityLabel={`${item.name} restaurant`}
+        accessibilityHint="Double tap to view restaurant details"
       />
       
       <View style={styles.restaurantContent}>

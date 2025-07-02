@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import OptimizedImage from '@/components/OptimizedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -145,7 +146,12 @@ export default function DiscoverScreen() {
                 style={styles.dishCard}
                 onPress={() => router.push(`/dish/${dish.id}`)}
               >
-                <Image source={{ uri: dish.image_url }} style={styles.dishImage} />
+                <OptimizedImage 
+              uri={dish.image_url} 
+              style={styles.dishImage}
+              accessibilityLabel={`${dish.name} from ${dish.country_origin}`}
+              accessibilityHint="Double tap to view dish details"
+            />
                 <View style={styles.dishContent}>
                   <View style={styles.dishHeader}>
                     <Text style={styles.dishName}>{dish.name}</Text>

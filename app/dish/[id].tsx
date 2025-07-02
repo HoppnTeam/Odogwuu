@@ -192,19 +192,19 @@ export default function DishDetailScreen() {
 
           {/* Ingredients */}
           {dish.base_ingredients && (
-            <View style={styles.educationalSection}>
-              <View style={styles.educationalHeader}>
-                <Utensils color={Colors.primary} size={20} />
-                <Text style={styles.educationalTitle}>Ingredients</Text>
-              </View>
-              <View style={styles.ingredientsList}>
-                {dish.base_ingredients.map((ingredient: string, index: number) => (
-                  <View key={index} style={styles.ingredient}>
-                    <Text style={styles.ingredientText}>• {ingredient}</Text>
-                  </View>
-                ))}
-              </View>
+          <View style={styles.educationalSection}>
+            <View style={styles.educationalHeader}>
+              <Utensils color={Colors.primary} size={20} />
+              <Text style={styles.educationalTitle}>Ingredients</Text>
             </View>
+            <View style={styles.ingredientsList}>
+                {dish.base_ingredients.map((ingredient: string, index: number) => (
+                <View key={index} style={styles.ingredient}>
+                  <Text style={styles.ingredientText}>• {ingredient}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
           )}
 
           {/* Preparation Method */}

@@ -36,7 +36,7 @@ export default function RestaurantDetailScreen() {
         try {
           const restaurantData = getRestaurantById(id!);
           const dishesData = getDishesByRestaurant(id!);
-          
+  
           if (!restaurantData) {
             const notFoundError = errorHandler.createError(
               ErrorType.DATABASE,
