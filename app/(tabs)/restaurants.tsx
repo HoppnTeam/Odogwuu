@@ -10,6 +10,9 @@ import { useLocation } from '@/contexts/LocationContext';
 import { restaurantService, NearbyRestaurant } from '@/lib/restaurant-service';
 import { locationService } from '@/lib/location-service';
 import RestaurantMap from '@/components/RestaurantMap';
+import SearchBar from '@/components/SearchBar';
+import AdvancedFilters from '@/components/AdvancedFilters';
+import { searchService, SearchFilters, SearchResult } from '@/lib/search-service';
 
 const cuisineTypes = [
   { id: null, name: 'All Cuisines', color: Colors.primary },
@@ -22,10 +25,15 @@ const cuisineTypes = [
 
 export default function RestaurantsScreen() {
   const [restaurants, setRestaurants] = useState<NearbyRestaurant[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [filterCuisine, setFilterCuisine] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<SearchFilters>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { 
     userLocation, 
@@ -41,19 +49,45 @@ export default function RestaurantsScreen() {
     try {
       setIsLoading(true);
       
-      if (userLocation) {
-        const nearbyRestaurants = await restaurantService.getNearbyRestaurants(userLocation);
-        setRestaurants(nearbyRestaurants);
-      } else {
-        // If no location, show all restaurants
-        const allRestaurants = await restaurantService.getAllRestaurants();
-        setRestaurants(allRestaurants.map(r => ({ ...r, distance: undefined, travelTime: undefined })));
-      }
+      // Use the existing restaurant service to get all restaurants
+      const allRestaurants = await restaurantService.getAllRestaurants();
+      setRestaurants(allRestaurants.map(r => ({ ...r, distance: undefined, travelTime: undefined })));
     } catch (error) {
       console.error('Error loading restaurants:', error);
       Alert.alert('Error', 'Failed to load restaurants');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async (query: string, filters?: SearchFilters) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchQuery('');
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      setSearchQuery(query);
+      
+      const results = await searchService.globalSearch(query, filters);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching:', error);
+      Alert.alert('Error', 'Failed to perform search');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAdvancedFilters = (filters: SearchFilters) => {
+    setCurrentFilters(filters);
+    if (searchQuery) {
+      handleSearch(searchQuery, filters);
+    } else {
+      loadRestaurants();
     }
   };
 
@@ -74,6 +108,16 @@ export default function RestaurantsScreen() {
   };
 
   const getFilteredRestaurants = () => {
+    if (searchQuery && searchResults.length > 0) {
+      // Return search results filtered by cuisine if needed
+      const restaurantResults = searchResults
+        .filter(result => result.type === 'restaurant')
+        .map(result => result.data as NearbyRestaurant);
+      
+      if (!filterCuisine) return restaurantResults;
+      return restaurantResults.filter(r => r.cuisine_type === filterCuisine);
+    }
+    
     if (!filterCuisine) return restaurants;
     return restaurants.filter(r => r.cuisine_type === filterCuisine);
   };
@@ -188,7 +232,7 @@ export default function RestaurantsScreen() {
         
         <View style={styles.headerActions}>
           <TouchableOpacity 
-            onPress={() => setShowFilters(!showFilters)} 
+            onPress={() => setShowAdvancedFilters(true)} 
             style={styles.actionButton}
           >
             <Filter size={20} color={Colors.primary} />
@@ -202,6 +246,14 @@ export default function RestaurantsScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Search Bar */}
+      <SearchBar
+        onSearch={handleSearch}
+        onFilterPress={() => setShowAdvancedFilters(true)}
+        placeholder="Search restaurants, dishes, or cuisines..."
+        style={styles.searchBar}
+      />
       
       {!hasLocationPermission && (
         <TouchableOpacity onPress={handleLocationPermission} style={styles.permissionPrompt}>
@@ -211,9 +263,15 @@ export default function RestaurantsScreen() {
         </TouchableOpacity>
       )}
       
-      {hasLocationPermission && userLocation && (
+      {hasLocationPermission && userLocation && !searchQuery && (
         <Text style={styles.locationText}>
           📍 Showing {getFilteredRestaurants().length} restaurants near you
+        </Text>
+      )}
+
+      {searchQuery && (
+        <Text style={styles.searchResultsText}>
+          🔍 Found {searchResults.length} results for "{searchQuery}"
         </Text>
       )}
 
@@ -275,6 +333,14 @@ export default function RestaurantsScreen() {
           onRestaurantPress={handleRestaurantPress}
         />
       </Modal>
+
+      {/* Advanced Filters Modal */}
+      <AdvancedFilters
+        visible={showAdvancedFilters}
+        onClose={() => setShowAdvancedFilters(false)}
+        onApply={handleAdvancedFilters}
+        currentFilters={currentFilters}
+      />
     </SafeAreaView>
   );
 }
@@ -536,5 +602,14 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  searchBar: {
+    marginBottom: Spacing.md,
+  },
+  searchResultsText: {
+    fontSize: FontSize.sm,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.primary,
+    marginTop: Spacing.sm,
   },
 }); 
