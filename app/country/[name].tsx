@@ -5,8 +5,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, BookOpen, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { countries } from '@/data/mockData';
 import { getHoppnDishesByCountry } from '@/lib/hoppn-dishes-service';
+import { supabase } from '@/lib/supabase';
 
 const SpiceLevel = ({ level }: { level: number }) => {
   return (
@@ -22,27 +22,57 @@ const SpiceLevel = ({ level }: { level: number }) => {
 
 export default function CountryDishesScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
-  const countryName = name?.charAt(0).toUpperCase() + name?.slice(1);
-  const country = countries.find(c => c.name.toLowerCase() === name?.toLowerCase());
-
+  const [country, setCountry] = useState<any>(null);
+  const [countryName, setCountryName] = useState<string | null>(null);
   const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
+    async function fetchCountry() {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase
+        .from('countries')
+        .select('*')
+        .ilike('name', name || '')
+        .single();
+      if (data) {
+        setCountry(data);
+        setCountryName(data.name);
+      } else {
+        setCountry(null);
+        setCountryName(null);
+        setError('Country not found');
+        setLoading(false);
+      }
+    }
+    fetchCountry();
+  }, [name]);
+
+  useEffect(() => {
+    if (!countryName) return;
     setLoading(true);
-    getHoppnDishesByCountry(countryName || '')
+    setError(null);
+    getHoppnDishesByCountry(countryName)
       .then(data => {
-        if (isMounted) setDishes(data);
+        setDishes(data || []);
+        setLoading(false);
       })
-      .catch(() => {
-        if (isMounted) setDishes([]);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
+      .catch((error) => {
+        setError('Failed to load dishes');
+        setDishes([]);
+        setLoading(false);
       });
-    return () => { isMounted = false; };
   }, [countryName]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 32 }} />
+      </SafeAreaView>
+    );
+  }
 
   if (!country) {
     return (
@@ -79,8 +109,10 @@ export default function CountryDishesScreen() {
             <BookOpen color={Colors.primary} size={24} />
             <Text style={styles.sectionTitle}>Traditional Dishes</Text>
           </View>
-          {loading ? (
-            <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 32 }} />
+          {error ? (
+            <View style={styles.noDishesContainer}>
+              <Text style={styles.noDishesText}>{error}</Text>
+            </View>
           ) : dishes.length === 0 ? (
             <View style={styles.noDishesContainer}>
               <Text style={styles.noDishesText}>

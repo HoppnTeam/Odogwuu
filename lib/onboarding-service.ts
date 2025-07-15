@@ -32,9 +32,9 @@ export const onboardingService = {
       
       const orderFrequency = onboardingData.orderFrequency || 'occasional';
 
-      // 1. Update users table with core preferences
+      // 1. Update customer_users table with core preferences
       const { error: userError } = await supabase
-        .from('users')
+        .from('customer_users')
         .update({
           dietary_preferences: dietaryPreferences,
           spice_tolerance: spiceTolerance,
@@ -43,7 +43,7 @@ export const onboardingService = {
         .eq('id', userId);
 
       if (userError) {
-        console.error('Error updating user table:', userError);
+        console.error('Error updating customer_users table:', userError);
         return { success: false, error: userError.message };
       }
 

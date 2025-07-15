@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Plus, Minus, ShoppingCart, BookOpen, MapPin, Heart, Utensils } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { getDishById } from '@/data/mockData';
+import { getDishById } from '@/lib/dishes-service';
+import { getHoppnDishById } from '@/lib/hoppn-dishes-service';
 import { useCart } from '@/contexts/CartContext';
 import { orderService } from '@/lib/order-service';
 
@@ -43,9 +44,30 @@ export default function DishDetailScreen() {
   const { addItem, state } = useCart();
   const [addError, setAddError] = useState<string | null>(null);
   const [checkingOrder, setCheckingOrder] = useState(false);
-  
-  const dish = getDishById(id!);
-  
+  const [dish, setDish] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  // Move selectedSizeIndex hook to top level, always called
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+
+  useEffect(() => {
+    async function fetchDish() {
+      setLoading(true);
+      // Only query hoppn_dishes
+      const foundDish = await getHoppnDishById(id!);
+      setDish(foundDish);
+      setLoading(false);
+    }
+    fetchDish();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 32 }} />
+      </SafeAreaView>
+    );
+  }
+
   if (!dish) {
     return (
       <SafeAreaView style={styles.container}>
@@ -54,51 +76,9 @@ export default function DishDetailScreen() {
     );
   }
 
-  // Multi-size logic
+  // Multi-size logic (not needed for hoppn_dishes, but keep for type safety)
   const hasSizes = dish.sizes && Array.isArray(dish.sizes) && dish.sizes.length > 0;
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
   const selectedSize = hasSizes ? dish.sizes![selectedSizeIndex] : null;
-
-  // Price logic
-  let displayPrice = dish.base_price ?? 0;
-  if (hasSizes) {
-    displayPrice = selectedSize?.price ?? dish.sizes![0].price;
-  }
-
-  // Price range for badge
-  let priceRange = '';
-  if (hasSizes && dish.sizes!.length > 1) {
-    const prices = dish.sizes!.map(s => s.price).sort((a, b) => a - b);
-    priceRange = `$${prices[0].toFixed(2)} - $${prices[prices.length - 1].toFixed(2)}`;
-  }
-
-  const handleAddToCart = async () => {
-    setAddError(null);
-    // Block if cart contains items from a different restaurant
-    if (state.items.length > 0 && state.items[0].restaurant_id !== dish.restaurant_id) {
-      setAddError('You can only order from one restaurant at a time. Please clear your cart to add items from a different restaurant.');
-      return;
-    }
-    setCheckingOrder(true);
-    const activeOrder = await orderService.getActiveOrder();
-    setCheckingOrder(false);
-    if (activeOrder) {
-      setAddError('You already have an active order. Please complete or cancel it before starting a new one.');
-      return;
-    }
-    // Pass selected size info to cart
-    addItem(
-      dish,
-      quantity,
-      {
-        special_instructions: specialInstructions,
-        selected_size: hasSizes ? selectedSize! : undefined
-      }
-    );
-    router.back();
-  };
-
-  const totalPrice = displayPrice * quantity;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -107,11 +87,6 @@ export default function DishDetailScreen() {
         <View style={styles.imageContainer}>
           <Image source={{ uri: dish.image_url }} style={styles.headerImage} />
           {/* Multi-sizes badge */}
-          {hasSizes && dish.sizes.length > 1 && (
-            <View style={styles.multiSizesBadge}>
-              <Text style={styles.multiSizesBadgeText}>Multi-sizes</Text>
-            </View>
-          )}
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
@@ -130,32 +105,6 @@ export default function DishDetailScreen() {
             </View>
           </View>
           
-          {/* Price or price range */}
-          {hasSizes && dish.sizes.length > 1 ? (
-            <Text style={styles.price}>{priceRange}</Text>
-          ) : (
-            <Text style={styles.price}>${displayPrice.toFixed(2)}</Text>
-          )}
-          {/* Size selector */}
-          {hasSizes && dish.sizes.length > 1 && (
-            <View style={styles.sizeSelector}>
-              {dish.sizes!.map((size, idx) => (
-                <TouchableOpacity
-                  key={size.label}
-                  style={[styles.sizeOption, idx === selectedSizeIndex && styles.sizeOptionSelected]}
-                  onPress={() => setSelectedSizeIndex(idx)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.sizeLabel, idx === selectedSizeIndex && styles.sizeLabelSelected]}>
-                    {size.label}
-                  </Text>
-                  <Text style={[styles.sizePrice, idx === selectedSizeIndex && styles.sizeLabelSelected]}>
-                    ${size.price.toFixed(2)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
           <Text style={styles.description}>{dish.description}</Text>
           
           <SpiceLevel level={dish.base_spice_level} />
@@ -224,7 +173,7 @@ export default function DishDetailScreen() {
                 <Text style={styles.educationalTitle}>Native Regions/Variations</Text>
               </View>
               <View style={styles.regionsList}>
-                {dish.native_regions.map((region, index) => (
+                {dish.native_regions.map((region: string, index: number) => (
                   <View key={index} style={styles.regionItem}>
                     <Text style={styles.regionText}>📍 {region}</Text>
                   </View>
@@ -260,54 +209,7 @@ export default function DishDetailScreen() {
             />
           )}
         </View>
-
-        {/* Special Instructions */}
-        <View style={styles.instructionsSection}>
-          <Text style={styles.instructionsTitle}>Special Instructions</Text>
-          <TextInput
-            style={styles.instructionsInput}
-            placeholder="Any special requests or allergies? (optional)"
-            value={specialInstructions}
-            onChangeText={setSpecialInstructions}
-            multiline
-            numberOfLines={3}
-            placeholderTextColor={Colors.text.secondary}
-          />
-        </View>
       </ScrollView>
-
-      {/* Add to Cart Footer */}
-      <View style={styles.footer}>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            onPress={() => setQuantity(Math.max(1, quantity - 1))}
-            style={styles.quantityButton}
-          >
-            <Minus color={Colors.text.secondary} size={20} />
-          </TouchableOpacity>
-          
-          <Text style={styles.quantity}>{quantity}</Text>
-          
-          <TouchableOpacity
-            onPress={() => setQuantity(quantity + 1)}
-            style={styles.quantityButton}
-          >
-            <Plus color={Colors.text.secondary} size={20} />
-          </TouchableOpacity>
-        </View>
-        
-        <TouchableOpacity
-          style={styles.addToCartButton}
-          onPress={handleAddToCart}
-          disabled={checkingOrder}
-        >
-          <ShoppingCart color={Colors.text.inverse} size={20} />
-          <Text style={styles.addToCartText}>Add to Cart • ${totalPrice.toFixed(2)}</Text>
-        </TouchableOpacity>
-      </View>
-      {addError && (
-        <Text style={{ color: Colors.error, marginTop: 8, textAlign: 'center' }}>{addError}</Text>
-      )}
     </SafeAreaView>
   );
 }

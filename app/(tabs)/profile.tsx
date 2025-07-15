@@ -519,10 +519,16 @@ export default function ProfileScreen() {
   const loadRecentOrders = async () => {
     try {
       setOrdersLoading(true);
-      const orders = await orderService.getUserOrders();
-      setRecentOrders(orders.slice(0, 3)); // Show only 3 most recent
+      const result = await orderService.getUserOrders();
+      if (result.success && result.orders) {
+        setRecentOrders(result.orders.slice(0, 3)); // Show only 3 most recent
+      } else {
+        console.error('Error loading orders:', result.error);
+        setRecentOrders([]);
+      }
     } catch (error) {
       console.error('Error loading orders:', error);
+      setRecentOrders([]);
     } finally {
       setOrdersLoading(false);
     }

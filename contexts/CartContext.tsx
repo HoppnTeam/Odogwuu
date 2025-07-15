@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { CartItem, Dish, DishSize } from '@/types';
+import { cartService } from '@/lib/supabase-service';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 interface CartState {
   items: CartItem[];
@@ -159,32 +162,100 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+  const { user } = useAuth();
 
-  const addItem = (dish: Dish, quantity: number, customizations?: Partial<CartItem>) => {
+  // Load cart from Supabase on mount or login
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (user) {
+        const items = await cartService.getCartItems();
+        // Map DB items to CartItem shape if needed
+        dispatch({ type: 'CLEAR_CART' });
+        items.forEach((item: any) => {
+          dispatch({
+            type: 'ADD_ITEM',
+            payload: {
+              dish: {
+                id: item.dish_id,
+                restaurant_id: item.restaurant_id || '',
+                name: item.dish_name || '',
+                description: '',
+                image_url: item.image_url || '',
+                base_price: item.base_price || 0,
+                category: '',
+                base_spice_level: item.spice_level || 3,
+                country_origin: '',
+                country_flag: '',
+                origin_story: '',
+                base_ingredients: [],
+                is_vegetarian: false,
+                is_vegan: false,
+                is_active: true,
+                created_at: '',
+                updated_at: '',
+              },
+              quantity: item.quantity,
+              special_instructions: item.special_instructions,
+              spice_level: item.spice_level,
+              extras: item.extras,
+            },
+          });
+        });
+      }
+    };
+    fetchCart();
+  }, [user]);
+
+  // Add item to cart and Supabase (no duplicates)
+  const addItem = async (dish: Dish, quantity: number, customizations?: Partial<CartItem>) => {
+    await cartService.addCartItem({
+      dish_id: dish.id,
+      quantity,
+      special_instructions: customizations?.special_instructions,
+      spice_level: customizations?.spice_level,
+      extras: customizations?.extras,
+    });
     dispatch({ type: 'ADD_ITEM', payload: { dish, quantity, ...customizations } });
   };
 
-  const removeItem = (dishId: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: dishId });
-  };
-
-  const updateQuantity = (dishId: string, quantity: number) => {
+  // Update quantity in cart and Supabase
+  const updateQuantity = async (dishId: string, quantity: number) => {
+    await cartService.updateCartItem({ dish_id: dishId, quantity });
     dispatch({ type: 'UPDATE_QUANTITY', payload: { dishId, quantity } });
   };
 
-  const updateCustomization = (dishId: string, customizations: Partial<CartItem>) => {
+  // Remove item from cart and Supabase
+  const removeItem = async (dishId: string) => {
+    await cartService.removeCartItem(dishId);
+    dispatch({ type: 'REMOVE_ITEM', payload: dishId });
+  };
+
+  // Update customizations in cart and Supabase
+  const updateCustomization = async (dishId: string, customizations: Partial<CartItem>) => {
+    await cartService.updateCartItem({ dish_id: dishId, ...customizations });
     dispatch({ type: 'UPDATE_CUSTOMIZATION', payload: { dishId, customizations } });
   };
 
-  const addExtra = (dishId: string, extra: string) => {
+  // Add extra in cart and Supabase
+  const addExtra = async (dishId: string, extra: string) => {
+    // Fetch current item, add extra, then update
+    const item = state.items.find(i => i.dish_id === dishId);
+    const newExtras = [...(item?.extras || []), extra];
+    await cartService.updateCartItem({ dish_id: dishId, extras: newExtras });
     dispatch({ type: 'ADD_EXTRA', payload: { dishId, extra } });
   };
 
-  const removeExtra = (dishId: string, extraIndex: number) => {
+  // Remove extra in cart and Supabase
+  const removeExtra = async (dishId: string, extraIndex: number) => {
+    const item = state.items.find(i => i.dish_id === dishId);
+    const newExtras = (item?.extras || []).filter((_, idx) => idx !== extraIndex);
+    await cartService.updateCartItem({ dish_id: dishId, extras: newExtras });
     dispatch({ type: 'REMOVE_EXTRA', payload: { dishId, extraIndex } });
   };
 
-  const clearCart = () => {
+  // Clear cart in Supabase and local state
+  const clearCart = async () => {
+    await cartService.clearCart();
     dispatch({ type: 'CLEAR_CART' });
   };
 

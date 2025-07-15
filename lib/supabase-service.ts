@@ -493,6 +493,94 @@ export const calculateServiceFee = (subtotal: number, feePercentage: number = 0.
   return Math.round(subtotal * feePercentage * 100) / 100;
 };
 
+// Cart Services
+export const cartService = {
+  // Get all cart items for the current user
+  async getCartItems() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+    const { data, error } = await supabase
+      .from('cart')
+      .select('*')
+      .eq('user_id', user.id);
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Add or update a cart item (upsert by user_id + dish_id)
+  async addCartItem({ dish_id, quantity = 1, special_instructions, spice_level, extras }: {
+    dish_id: string;
+    quantity?: number;
+    special_instructions?: string;
+    spice_level?: number;
+    extras?: string[];
+  }) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+    const { data, error } = await supabase
+      .from('cart')
+      .upsert({
+        user_id: user.id,
+        dish_id,
+        quantity,
+        special_instructions,
+        spice_level,
+        extras,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,dish_id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Update a cart item (by user_id + dish_id)
+  async updateCartItem({ dish_id, ...fields }: {
+    dish_id: string;
+    quantity?: number;
+    special_instructions?: string;
+    spice_level?: number;
+    extras?: string[];
+  }) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+    const { data, error } = await supabase
+      .from('cart')
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('dish_id', dish_id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Remove a cart item
+  async removeCartItem(dish_id: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+    const { error } = await supabase
+      .from('cart')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('dish_id', dish_id);
+    if (error) throw error;
+    return true;
+  },
+
+  // Clear all cart items for the user
+  async clearCart() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+    const { error } = await supabase
+      .from('cart')
+      .delete()
+      .eq('user_id', user.id);
+    if (error) throw error;
+    return true;
+  },
+};
+
 /**
  * Comprehensive database integration verification
  * Tests all core features to ensure they work with the existing Supabase database

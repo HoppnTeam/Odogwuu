@@ -154,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Create user profile in database immediately
       if (data.user) {
         const { error: profileError } = await supabase
-          .from('users')
+          .from('customer_users')
           .insert({
             id: data.user.id,
             email: sanitizedEmail,

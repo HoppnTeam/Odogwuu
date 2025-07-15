@@ -5,7 +5,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Star, Clock, MapPin, Phone, AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { Spacing, FontSize } from '@/constants/Spacing';
-import { getRestaurantById, getDishesByRestaurant } from '@/data/mockData';
+import { restaurantService } from '@/lib/restaurant-service';
+import { getDishesByRestaurant } from '@/lib/dishes-service';
 import { useDataErrorHandler } from '@/hooks/useErrorHandler';
 import { errorHandler, ErrorType } from '@/lib/error-handler';
 
@@ -32,12 +33,14 @@ export default function RestaurantDetailScreen() {
 
   useEffect(() => {
     const loadRestaurantData = async () => {
+      setLoading(true);
+      setError(null);
+      
       await executeWithErrorHandling(async () => {
         try {
-          const restaurantData = getRestaurantById(id!);
-          const dishesData = getDishesByRestaurant(id!);
-  
-          if (!restaurantData) {
+          // Load restaurant data
+          const restaurantResult = await restaurantService.getRestaurantById(id!);
+          if (!restaurantResult) {
             const notFoundError = errorHandler.createError(
               ErrorType.DATABASE,
               'Restaurant not found',
@@ -49,8 +52,12 @@ export default function RestaurantDetailScreen() {
             return;
           }
           
-          setRestaurant(restaurantData);
-          setDishes(dishesData);
+          setRestaurant(restaurantResult);
+          
+          // Load dishes data
+          const dishesData = await getDishesByRestaurant(id!);
+          setDishes(dishesData || []);
+          
         } catch (error) {
           const appError = errorHandler.createError(
             ErrorType.DATABASE,
@@ -62,9 +69,13 @@ export default function RestaurantDetailScreen() {
           setError('Failed to load restaurant data');
         }
       }, { action: 'load_restaurant_data' });
+      
+      setLoading(false);
     };
 
-    loadRestaurantData();
+    if (id) {
+      loadRestaurantData();
+    }
   }, [id, executeWithErrorHandling, handleError]);
 
   if (loading) {
